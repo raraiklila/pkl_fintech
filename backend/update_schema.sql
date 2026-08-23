@@ -87,3 +87,107 @@ BEGIN
     RETURN row_to_json(v_new_tx);
 END;
 $$ LANGUAGE plpgsql;
+
+-- 4. Fungsi QRIS dengan Proteksi Auto-Cap Cicilan Emas
+CREATE OR REPLACE FUNCTION simulate_qris_payment_tx(
+    p_merchant_id INT,
+    p_amount NUMERIC,
+    p_mdr_umi_rate NUMERIC,
+    p_mdr_non_umi_rate NUMERIC,
+    p_mdr_limit NUMERIC
+) RETURNS JSON AS $$
+DECLARE
+    v_merchant RECORD;
+    v_installment RECORD;
+    v_balance RECORD;
+    v_mdr_rate NUMERIC;
+    v_mdr_fee NUMERIC;
+    v_net_amount NUMERIC;
+    v_gold_cut NUMERIC := 0;
+    v_balance_cut NUMERIC;
+    v_remaining_amount NUMERIC;
+    v_gold_weight_added NUMERIC := 0;
+    v_new_accumulated_amount NUMERIC;
+    v_new_accumulated_weight NUMERIC;
+    v_is_completed BOOLEAN := false;
+    v_transaction_id TEXT;
+    v_new_tx RECORD;
+    v_additional_gold_balance_reward NUMERIC := 0;
+    v_gold_price NUMERIC;
+BEGIN
+    IF p_amount <= 0 THEN
+        RAISE EXCEPTION 'Nominal pembayaran QRIS harus lebih besar dari nol';
+    END IF;
+
+    SELECT price INTO v_gold_price FROM gold_price ORDER BY updated_at DESC LIMIT 1;
+    IF NOT FOUND THEN
+        v_gold_price := 2725000.0;
+    END IF;
+
+    SELECT * INTO v_merchant FROM merchant WHERE id = p_merchant_id FOR UPDATE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Merchant tidak ditemukan';
+    END IF;
+
+    IF v_merchant.is_umi THEN
+        IF p_amount <= p_mdr_limit THEN
+            v_mdr_rate := 0.0;
+        ELSE
+            v_mdr_rate := p_mdr_umi_rate;
+        END IF;
+    ELSE
+        v_mdr_rate := p_mdr_non_umi_rate;
+    END IF;
+    
+    v_mdr_fee := p_amount * v_mdr_rate;
+    v_net_amount := p_amount - v_mdr_fee;
+    v_balance_cut := v_net_amount;
+
+    -- Cek Cicilan Aktif
+    SELECT * INTO v_installment FROM installment 
+    WHERE merchant_id = p_merchant_id AND is_active = true FOR UPDATE;
+
+    IF FOUND THEN
+        v_remaining_amount := v_installment.total_installment_amount - v_installment.accumulated_amount;
+        v_gold_cut := v_net_amount * (v_installment.split_percentage / 100.0);
+        
+        -- AUTO-CAP: Jika potongan melebihi sisa tagihan, potong PAS sebesar sisa tagihan!
+        IF v_gold_cut > v_remaining_amount THEN
+            v_gold_cut := v_remaining_amount;
+        END IF;
+
+        v_balance_cut := v_net_amount - v_gold_cut;
+        v_gold_weight_added := v_gold_cut / v_gold_price;
+
+        v_new_accumulated_amount := v_installment.accumulated_amount + v_gold_cut;
+        v_new_accumulated_weight := v_installment.accumulated_gold_weight + v_gold_weight_added;
+        v_is_completed := v_new_accumulated_amount >= v_installment.total_installment_amount;
+
+        UPDATE installment
+        SET accumulated_amount = v_new_accumulated_amount,
+            accumulated_gold_weight = v_new_accumulated_weight,
+            is_active = NOT v_is_completed
+        WHERE id = v_installment.id;
+
+        IF v_is_completed THEN
+            v_additional_gold_balance_reward := v_installment.target_weight;
+        END IF;
+    END IF;
+
+    UPDATE balance
+    SET main_balance = main_balance + v_balance_cut,
+        gold_balance = gold_balance + v_additional_gold_balance_reward
+    WHERE merchant_id = p_merchant_id;
+
+    v_transaction_id := 'QRIS' || to_char(CURRENT_TIMESTAMP, 'YY') || lpad((random() * 900000 + 100000)::INT::TEXT, 6, '0') || 'QG';
+
+    INSERT INTO transaksi (
+        id, merchant_id, type, title, total_amount, main_amount, gold_amount, gold_weight_added, mdr_fee
+    ) VALUES (
+        v_transaction_id, p_merchant_id, 'QRIS_IN', 'Pembayaran QRIS - Pelanggan',
+        p_amount, v_balance_cut, v_gold_cut, v_gold_weight_added, v_mdr_fee
+    ) RETURNING * INTO v_new_tx;
+
+    RETURN row_to_json(v_new_tx);
+END;
+$$ LANGUAGE plpgsql;

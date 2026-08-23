@@ -22,6 +22,7 @@ enum class Screen {
     TarikSaldo,
     LaporanEmas,
     BeliEmas,
+    JualEmas,
     CairkanPilihBank,
     CairkanInputRekening,
     CairkanKonfirmasi,
@@ -79,10 +80,13 @@ class AppState {
     // Balances & Rates
     var mainBalance by mutableStateOf(0.0)
     var goldBalance by mutableStateOf(0.0)
-    var goldPriceRate by mutableStateOf(2605000.0) // Current Gold Price per Gram from DB
+    var goldPriceRate by mutableStateOf(2725000.0) // Harga Beli Antam per Gram
+    var goldBuyPrice by mutableStateOf(2725000.0)
+    var goldSellPrice by mutableStateOf(2585000.0) // Harga Buyback Antam per Gram (Selisih Rp 140.000)
     var goldPriceChange by mutableStateOf(0.0)
     var goldPricePercent by mutableStateOf(0.0)
     var goldPriceTrend by mutableStateOf("up")
+    var goldPriceHistory by mutableStateOf<List<GoldPricePoint>>(emptyList())
 
     // MDR & Volume status
     var isUMI by mutableStateOf(false)
@@ -271,8 +275,9 @@ class AppState {
                 val merchant = RetrofitClient.api.getMerchantById(merchantId)
                 val balance = RetrofitClient.api.getBalance(merchantId)
                 val txList = RetrofitClient.api.getTransactions(merchantId)
-                val activeInst = RetrofitClient.api.getActiveInstallment(merchantId)
+                val activeInst = try { RetrofitClient.api.getActiveInstallment(merchantId) } catch (e: Exception) { null }
                 val goldPriceResp = try { RetrofitClient.api.getGoldPrice() } catch (e: Exception) { null }
+                val goldHistoryResp = try { RetrofitClient.api.getGoldPriceHistory(6) } catch (e: Exception) { null }
 
                 withContext(Dispatchers.Main) {
                     ownerName = merchant.owner_name
@@ -291,9 +296,14 @@ class AppState {
                     goldBalance = balance.goldBalance
                     goldPriceResp?.let {
                         goldPriceRate = it.price
+                        goldBuyPrice = it.buyPrice ?: it.price
+                        goldSellPrice = it.sellPrice ?: (it.price * 0.97)
                         goldPriceChange = it.change
                         goldPricePercent = it.percent
                         goldPriceTrend = it.trend
+                    }
+                    goldHistoryResp?.let {
+                        goldPriceHistory = it.history
                     }
 
                     transactionHistory = txList.map { tx ->
@@ -310,17 +320,26 @@ class AppState {
                         )
                     }
 
-                    activeInstallment = activeInst?.let {
+                    val wasActive = activeInstallment
+                    val newActive = if (activeInst != null && activeInst.isActive) {
                         GoldInstallment(
-                            targetWeight = it.targetWeight,
-                            totalGoldPrice = it.targetWeight * goldPriceRate,
-                            serviceFee = it.serviceFee,
-                            totalInstallmentAmount = it.totalInstallmentAmount,
-                            splitPercentage = it.splitPercentage,
-                            accumulatedAmount = it.accumulatedAmount,
-                            accumulatedGoldWeight = it.accumulatedGoldWeight
+                            targetWeight = activeInst.targetWeight,
+                            totalGoldPrice = activeInst.targetWeight * goldPriceRate,
+                            serviceFee = activeInst.serviceFee ?: 0.0,
+                            totalInstallmentAmount = activeInst.totalInstallmentAmount,
+                            splitPercentage = activeInst.splitPercentage,
+                            accumulatedAmount = activeInst.accumulatedAmount,
+                            accumulatedGoldWeight = activeInst.accumulatedGoldWeight
                         )
+                    } else {
+                        null
                     }
+
+                    if (wasActive != null && newActive == null) {
+                        completedInstallmentWeight = wasActive.targetWeight
+                        showCompletionDialog = true
+                    }
+                    activeInstallment = newActive
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -449,6 +468,36 @@ class AppState {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     onError?.invoke(handleNetworkError(e, "Gagal melakukan pembelian emas"))
+                }
+            }
+        }
+    }
+
+    fun sellGold(goldWeight: Double, onError: ((String) -> Unit)? = null, onCompleted: (Transaction) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val req = SellGoldRequest(merchantId = merchantId, goldWeight = goldWeight)
+                val response = RetrofitClient.api.sellGold(req)
+                refreshData()
+
+                val formattedTx = Transaction(
+                    id = response.id,
+                    type = response.type,
+                    title = response.title,
+                    date = formatIsoToReadable(response.createdAt),
+                    totalAmount = response.totalAmount,
+                    mainAmount = response.mainAmount,
+                    goldAmount = response.goldAmount,
+                    goldWeightAdded = response.goldWeightAdded,
+                    mdrFee = response.mdrFee
+                )
+
+                withContext(Dispatchers.Main) {
+                    onCompleted(formattedTx)
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    onError?.invoke(handleNetworkError(e, "Gagal melakukan penjualan emas"))
                 }
             }
         }

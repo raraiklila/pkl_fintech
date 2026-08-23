@@ -292,25 +292,13 @@ fun MainProfileView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Card 2: Pengaturan Umum (FAQ, Bahasa, Tema, Tentang Kami, QRIS info & Rekening)
+            // Card 2: Pengaturan Umum (FAQ, Tentang Kami)
             ProfileSectionCard(title = "Pengaturan Umum") {
                 ProfileSettingRow(
                     title = "FAQ",
                     sub = "Cari pertanyaan anda",
                     icon = Icons.Default.QuestionAnswer,
                     onClick = { onNavigate("FAQ") }
-                )
-                ProfileSettingRow(
-                    title = "Bahasa",
-                    sub = "Pilih bahasa sesuai preferensi",
-                    icon = Icons.Default.Language,
-                    onClick = { Toast.makeText(context, "Aplikasi diset default Bahasa Indonesia", Toast.LENGTH_SHORT).show() }
-                )
-                ProfileSettingRow(
-                    title = "Tema",
-                    sub = "Atur tampilan sesuai kenyamanan",
-                    icon = Icons.Default.Contrast,
-                    onClick = { Toast.makeText(context, "Mode Gelap akan hadir segera!", Toast.LENGTH_SHORT).show() }
                 )
                 ProfileSettingRow(
                     title = "Tentang Kami",

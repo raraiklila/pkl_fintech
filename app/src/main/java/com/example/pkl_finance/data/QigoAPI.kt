@@ -5,6 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PklFinanceApi {
     
@@ -60,6 +61,12 @@ interface PklFinanceApi {
         @Body request: BuyGoldRequest
     ): TransactionResponse
 
+    // Submit digital gold sale checkout
+    @POST("api/transactions/sell-gold")
+    suspend fun sellGold(
+        @Body request: SellGoldRequest
+    ): TransactionResponse
+
     // Register a new merchant
     @POST("api/auth/register")
     suspend fun register(
@@ -88,6 +95,12 @@ interface PklFinanceApi {
     @GET("api/gold-price")
     suspend fun getGoldPrice(): GoldPriceResponse
 
+    // Get gold price history for chart
+    @GET("api/gold-price/history")
+    suspend fun getGoldPriceHistory(
+        @Query("limit") limit: Int = 6
+    ): GoldPriceHistoryResponse
+
     // ─── Midtrans QRIS ─────────────────────────────────────────────
     // Buat transaksi QRIS baru via Midtrans Sandbox
     @POST("api/qris/create")
@@ -104,10 +117,22 @@ interface PklFinanceApi {
 
 data class GoldPriceResponse(
     val price: Double,
+    val buyPrice: Double? = null,
+    val sellPrice: Double? = null,
+    val spreadPercent: Double = 3.0,
     val change: Double = 0.0,
     val percent: Double = 0.0,
     val trend: String = "up",
     val updated_at: String? = null
+)
+
+data class GoldPricePoint(
+    val price: Double,
+    val updated_at: String?
+)
+
+data class GoldPriceHistoryResponse(
+    val history: List<GoldPricePoint>
 )
 
 // Auth Data Classes

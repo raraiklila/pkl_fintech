@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -102,30 +101,6 @@ fun HomeScreen(
                         color = DarkNavy
                     )
                 }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color.White, CircleShape)
-                    .clip(CircleShape)
-                    .clickable { }
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "Notifikasi",
-                    tint = DarkNavy,
-                    modifier = Modifier.size(20.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .background(Color.Red, CircleShape)
-                        .align(Alignment.TopEnd)
-                        .offset(x = (-2).dp, y = 2.dp)
-                )
             }
         }
 
@@ -308,6 +283,8 @@ fun HomeScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     // Quick Action Menu
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -357,6 +334,8 @@ fun HomeScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Active Installment Section
             Text(
@@ -531,6 +510,8 @@ fun HomeScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(20.dp))
+
             // Recent Transactions Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -575,7 +556,7 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Nav pad
+            Spacer(modifier = Modifier.height(100.dp)) // Bottom navbar spacing
         }
     }
 

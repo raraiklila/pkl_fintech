@@ -44,7 +44,7 @@ data class InstallmentResponse(
     @SerializedName("merchant_id") val merchantId: Int,
     @SerializedName("target_weight") val targetWeight: Double,
     @SerializedName("total_installment_amount") val totalInstallmentAmount: Double,
-    @SerializedName("service_fee") val serviceFee: Double,
+    @SerializedName("service_fee") val serviceFee: Double? = 0.0,
     @SerializedName("split_percentage") val splitPercentage: Int,
     @SerializedName("accumulated_amount") val accumulatedAmount: Double,
     @SerializedName("accumulated_gold_weight") val accumulatedGoldWeight: Double,
@@ -73,6 +73,11 @@ data class WithdrawRequest(
 data class BuyGoldRequest(
     @SerializedName("merchantId") val merchantId: Int,
     @SerializedName("amount") val amount: Double
+)
+
+data class SellGoldRequest(
+    @SerializedName("merchantId") val merchantId: Int,
+    @SerializedName("goldWeight") val goldWeight: Double
 )
 
 data class UpdateBankAccountRequest(

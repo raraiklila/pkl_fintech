@@ -34,7 +34,7 @@ fun ReceiptScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     // Determine header theme based on transaction type
-    val isGoldRelated = trans.type == "GOLD_BUY" || trans.type == "AUTOSPLIT_GOLD"
+    val isGoldRelated = trans.type == "GOLD_BUY" || trans.type == "AUTOSPLIT_GOLD" || trans.type == "GOLD_SELL"
     val isPositive = trans.totalAmount >= 0.0
 
     val headerGradient = if (isGoldRelated) {
@@ -82,8 +82,8 @@ fun ReceiptScreen(
                 IconButton(
                     onClick = {
                         appState.selectedTransactionReceipt = null
-                        if (appState.previousScreen == Screen.BeliEmas || appState.previousScreen == Screen.TarikSaldo) {
-                            appState.navigateTo(Screen.Home)
+                        if (appState.previousScreen == Screen.BeliEmas || appState.previousScreen == Screen.JualEmas || appState.previousScreen == Screen.TarikSaldo) {
+                            appState.navigateTo(Screen.Emas)
                         } else {
                             appState.navigateTo(appState.previousScreen)
                         }
@@ -259,7 +259,21 @@ fun ReceiptScreen(
                                     value = String.format(Locale.US, "%.4f Gram", trans.goldWeightAdded)
                                 )
                                 Spacer(modifier = Modifier.height(12.dp))
-                                DetailReceiptRow(label = "Harga emas", value = "${appState.formatRupiah(appState.goldPriceRate)} / Gram")
+                                DetailReceiptRow(label = "Harga beli emas", value = "${appState.formatRupiah(appState.goldBuyPrice)} / Gram")
+                                Spacer(modifier = Modifier.height(12.dp))
+                                DetailReceiptRow(label = "Toko", value = appState.shopName)
+                            }
+                            "GOLD_SELL" -> {
+                                DetailReceiptRow(label = "Tujuan dana", value = "Saldo Merchant")
+                                Spacer(modifier = Modifier.height(12.dp))
+                                DetailReceiptRow(label = "Total dana diterima", value = "+ " + appState.formatRupiah(trans.totalAmount))
+                                Spacer(modifier = Modifier.height(12.dp))
+                                DetailReceiptRow(
+                                    label = "Emas yang dijual",
+                                    value = String.format(Locale.US, "%.4f Gram", kotlin.math.abs(trans.goldWeightAdded))
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                DetailReceiptRow(label = "Harga jual (buyback)", value = "${appState.formatRupiah(appState.goldSellPrice)} / Gram")
                                 Spacer(modifier = Modifier.height(12.dp))
                                 DetailReceiptRow(label = "Toko", value = appState.shopName)
                             }

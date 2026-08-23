@@ -137,48 +137,78 @@ fun EmasScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, top = 20.dp, bottom = 20.dp, end = 100.dp),
+                        .padding(horizontal = 20.dp, vertical = 18.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
                         Text(
                             text = "Emas yang dimiliki",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.Black.copy(alpha = 0.6f)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "${String.format(java.util.Locale.US, "%.4f", appState.goldBalance)}g",
-                            fontSize = 34.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.25f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Column {
-                        Text(
-                            text = "Harga Emas",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "$goldPriceFormatted / g",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "$trendArrow $trendSign${String.format("%.2f", goldPrice.percent)}%",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = trendColor
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Harga Beli",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black.copy(alpha = 0.65f)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${appState.formatRupiah(appState.goldBuyPrice)}/g",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = "Harga Jual (Buyback)",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.Black.copy(alpha = 0.65f)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${appState.formatRupiah(appState.goldSellPrice)}/g",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "$trendArrow $trendSign${String.format("%.2f", goldPrice.percent)}%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (goldPrice.trend == "up") Color(0xFF047857) else Color(0xFFB91C1C)
+                            )
+                        }
                     }
                 }
             }
@@ -221,18 +251,19 @@ fun EmasScreen(
                         if (!appState.isVerified) {
                             showVerificationDialog = true
                         } else {
-                            comingSoonFeature = "Jual Emas"
+                            appState.previousScreen = Screen.Emas
+                            appState.navigateTo(Screen.JualEmas)
                         }
                     }
                 )
                 EmasActionItem(
-                    label = "Cetak Emas",
+                    label = "Riwayat Emas",
                     iconResId = R.drawable.ic_menu_cetak,
                     onClick = {
                         if (!appState.isVerified) {
                             showVerificationDialog = true
                         } else {
-                            comingSoonFeature = "Cetak Emas"
+                            appState.navigateTo(Screen.RiwayatEmasDetail)
                         }
                     }
                 )
@@ -240,7 +271,7 @@ fun EmasScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Perkembangan Emas header with "Lihat Laporan" link
+            // Perkembangan Emas header (tanpa Lihat Laporan)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -252,13 +283,6 @@ fun EmasScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkNavy
                 )
-                Text(
-                    text = "Lihat Laporan",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue,
-                    modifier = Modifier.clickable { comingSoonFeature = "Laporan Emas" }
-                )
             }
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -267,7 +291,7 @@ fun EmasScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Riwayat Emas
+            // Riwayat Emas (tanpa Lihat Semua)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -279,19 +303,14 @@ fun EmasScreen(
                     fontWeight = FontWeight.Bold,
                     color = DarkNavy
                 )
-                Text(
-                    text = "Lihat Semua",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue,
-                    modifier = Modifier.clickable { appState.navigateTo(Screen.RiwayatEmasDetail) }
-                )
             }
             Spacer(modifier = Modifier.height(12.dp))
 
             // Filter all transaction history specifically for gold items
             val goldTransactions = remember(appState.transactionHistory) {
-                appState.transactionHistory.filter { it.type == "GOLD_BUY" || it.goldAmount > 0.0 }
+                appState.transactionHistory.filter {
+                    it.type == "GOLD_BUY" || it.type == "GOLD_SELL" || it.goldAmount > 0.0
+                }
             }
 
             if (goldTransactions.isEmpty()) {
@@ -414,22 +433,45 @@ fun EmasAreaChart(
     appState: AppState,
     modifier: Modifier = Modifier
 ) {
-    val currentGram = appState.goldBalance
-    val grams = remember(currentGram) {
-        if (currentGram <= 0.0) {
-            listOf(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+    val history = appState.goldPriceHistory
+    val currentPrice = appState.goldPriceRate.toFloat()
+
+    // Build price list: use real history if available, else simulate from current price
+    val prices = remember(history, currentPrice) {
+        if (history.size >= 2) {
+            history.map { it.price.toFloat() }
         } else {
+            // Fallback: simulate 6 points trending to current price
             listOf(
-                (currentGram * 0.15).toFloat(),
-                (currentGram * 0.35).toFloat(),
-                (currentGram * 0.55).toFloat(),
-                (currentGram * 0.70).toFloat(),
-                (currentGram * 0.85).toFloat(),
-                currentGram.toFloat()
+                currentPrice * 0.960f,
+                currentPrice * 0.972f,
+                currentPrice * 0.981f,
+                currentPrice * 0.989f,
+                currentPrice * 0.995f,
+                currentPrice
             )
         }
     }
-    val maxGram = (grams.maxOrNull() ?: 1.0f).coerceAtLeast(0.1f)
+
+    val minPrice = (prices.minOrNull() ?: currentPrice) * 0.998f
+    val maxPrice = (prices.maxOrNull() ?: currentPrice) * 1.002f
+    val priceRange = (maxPrice - minPrice).coerceAtLeast(1000f)
+
+    // Build x-axis labels from history updated_at or generic labels
+    val xLabels = remember(history) {
+        if (history.size >= 2) {
+            history.map { point ->
+                val raw = point.updated_at ?: ""
+                try {
+                    val datePart = raw.substringBefore("T")
+                    val parts = datePart.split("-")
+                    if (parts.size == 3) "${parts[2]}/${parts[1]}" else raw.take(5)
+                } catch (_: Exception) { raw.take(5) }
+            }
+        } else {
+            listOf("T-5", "T-4", "T-3", "T-2", "T-1", "Hari ini")
+        }
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AppWhite),
@@ -447,26 +489,21 @@ fun EmasAreaChart(
                     .fillMaxWidth()
                     .height(160.dp)
             ) {
-                // Y-Axis Labels
+                // Y-Axis Labels (in juta / millions for compact display)
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(32.dp),
+                        .width(40.dp),
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.End
                 ) {
-                    val yLabels = listOf(
-                        String.format(java.util.Locale.US, "%.1f", maxGram),
-                        String.format(java.util.Locale.US, "%.1f", maxGram * 0.8f),
-                        String.format(java.util.Locale.US, "%.1f", maxGram * 0.6f),
-                        String.format(java.util.Locale.US, "%.1f", maxGram * 0.4f),
-                        String.format(java.util.Locale.US, "%.1f", maxGram * 0.2f),
-                        "0.0"
-                    )
-                    yLabels.forEach { label ->
+                    val steps = 5
+                    (steps downTo 0).forEach { i ->
+                        val labelVal = minPrice + (priceRange / steps) * i
+                        val labelJuta = labelVal / 1_000_000f
                         Text(
-                            text = label,
-                            fontSize = 10.sp,
+                            text = String.format(java.util.Locale.US, "%.2fJ", labelJuta),
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = SlateGray
                         )
@@ -483,6 +520,7 @@ fun EmasAreaChart(
                 ) {
                     val w = size.width
                     val h = size.height
+                    val n = prices.size
 
                     // Grid lines (horizontal)
                     val horizontalLines = 5
@@ -496,26 +534,26 @@ fun EmasAreaChart(
                         )
                     }
 
-                    val coords = grams.mapIndexed { index, gram ->
-                        Offset(index * (w / 5f), h - (gram / maxGram) * h)
+                    val coords = prices.mapIndexed { index, price ->
+                        val x = if (n > 1) index * (w / (n - 1).toFloat()) else w / 2f
+                        val y = h - ((price - minPrice) / priceRange) * h
+                        Offset(x, y)
                     }
 
                     // Draw Gradient Area under curve
                     val areaPath = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(0f, h)
+                        moveTo(coords[0].x, h)
                         lineTo(coords[0].x, coords[0].y)
-                        
+
                         for (i in 0 until coords.size - 1) {
                             val p0 = coords[i]
                             val p1 = coords[i + 1]
                             val conX1 = p0.x + (p1.x - p0.x) / 2f
-                            val conY1 = p0.y
-                            val conX2 = p0.x + (p1.x - p0.x) / 2f
-                            val conY2 = p1.y
-                            cubicTo(conX1, conY1, conX2, conY2, p1.x, p1.y)
+                            val conX2 = conX1
+                            cubicTo(conX1, p0.y, conX2, p1.y, p1.x, p1.y)
                         }
-                        
-                        lineTo(w, h)
+
+                        lineTo(coords.last().x, h)
                         close()
                     }
 
@@ -535,10 +573,8 @@ fun EmasAreaChart(
                             val p0 = coords[i]
                             val p1 = coords[i + 1]
                             val conX1 = p0.x + (p1.x - p0.x) / 2f
-                            val conY1 = p0.y
-                            val conX2 = p0.x + (p1.x - p0.x) / 2f
-                            val conY2 = p1.y
-                            cubicTo(conX1, conY1, conX2, conY2, p1.x, p1.y)
+                            val conX2 = conX1
+                            cubicTo(conX1, p0.y, conX2, p1.y, p1.x, p1.y)
                         }
                     }
 
@@ -569,18 +605,17 @@ fun EmasAreaChart(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // X-Axis Labels (Months)
+            // X-Axis Labels
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 40.dp), // align with canvas start
+                    .padding(start = 48.dp), // align with canvas start
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val months = listOf("Jan", "Feb", "Mar", "Apr", "Mei", "Jun")
-                months.forEach { month ->
+                xLabels.forEach { label ->
                     Text(
-                        text = month,
-                        fontSize = 10.sp,
+                        text = label,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = SlateGray
                     )
@@ -589,6 +624,8 @@ fun EmasAreaChart(
         }
     }
 }
+
+
 
 @Composable
 fun EmasActionItem(
@@ -638,10 +675,28 @@ fun GoldHistoryItem(
     onClick: () -> Unit = {}
 ) {
     val isBuy = trans.type == "GOLD_BUY"
-    val titleText = if (isBuy) "Beli Emas Fisik" else "Autosplit Emas"
-    val subText = if (isBuy) "Dari Saldo Merchant" else "Ke Cicilan Emas"
-    val weightText = "+" + String.format("%.4f", trans.goldWeightAdded) + " Gram"
-    val rupiahText = appState.formatRupiah(if (isBuy) -trans.totalAmount else trans.goldAmount)
+    val isSell = trans.type == "GOLD_SELL"
+    val titleText = when {
+        isBuy -> "Beli Emas Digital"
+        isSell -> "Jual Emas Digital"
+        else -> "Autosplit Emas"
+    }
+    val subText = when {
+        isBuy -> "Dari Saldo Merchant"
+        isSell -> "Ke Saldo Merchant"
+        else -> "Ke Cicilan Emas"
+    }
+    val weightText = if (isSell) {
+        "-" + String.format("%.4f", kotlin.math.abs(trans.goldWeightAdded)) + " Gram"
+    } else {
+        "+" + String.format("%.4f", trans.goldWeightAdded) + " Gram"
+    }
+    val weightColor = if (isSell) Color(0xFFEF4444) else SuccessGreen
+    val rupiahText = if (isSell) {
+        "+" + appState.formatRupiah(trans.totalAmount).removePrefix("Rp ").let { "Rp $it" }
+    } else {
+        appState.formatRupiah(if (isBuy) -trans.totalAmount else trans.goldAmount)
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AppWhite),
@@ -698,7 +753,7 @@ fun GoldHistoryItem(
                     text = weightText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = SuccessGreen
+                    color = weightColor
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(

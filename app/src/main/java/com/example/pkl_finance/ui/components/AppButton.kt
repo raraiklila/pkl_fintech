@@ -38,6 +38,7 @@ fun AppButton(
     variant: AppButtonVariant = AppButtonVariant.Primary,
     leadingIcon: ImageVector? = null,
     height: Dp = 50.dp,
+    horizontalPadding: Dp = 16.dp,
     isLoading: Boolean = false,
 ) {
     val isDisabled = variant == AppButtonVariant.Disabled || isLoading
@@ -139,7 +140,7 @@ fun AppButton(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                modifier = Modifier.padding(horizontal = horizontalPadding)
             ) {
                 if (leadingIcon != null) {
                     Icon(
@@ -152,10 +153,12 @@ fun AppButton(
                 }
                 Text(
                     text = text,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
-                    letterSpacing = 0.2.sp
+                    letterSpacing = 0.2.sp,
+                    maxLines = 1,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
         }

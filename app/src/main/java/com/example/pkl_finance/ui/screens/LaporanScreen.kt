@@ -135,9 +135,7 @@ fun LaporanScreen(
     ) {
         AppTopBar(
             title = "Laporan Pendapatan",
-            onBack = { appState.navigateTo(Screen.Home) },
-            actionIcon = Icons.Default.FileDownload,
-            onAction = { showComingSoonDialog = true }
+            onBack = { appState.navigateTo(Screen.Home) }
         )
 
         Column(

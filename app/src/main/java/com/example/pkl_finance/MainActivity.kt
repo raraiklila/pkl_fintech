@@ -61,6 +61,7 @@ class MainActivity : ComponentActivity() {
                                 appState.currentScreen != Screen.TarikSaldo &&
                                 appState.currentScreen != Screen.LaporanEmas &&
                                 appState.currentScreen != Screen.BeliEmas &&
+                                appState.currentScreen != Screen.JualEmas &&
                                 appState.currentScreen != Screen.CairkanPilihBank &&
                                 appState.currentScreen != Screen.CairkanInputRekening &&
                                 appState.currentScreen != Screen.CairkanKonfirmasi &&
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
                             appState.currentScreen == Screen.TarikSaldo ||
                             appState.currentScreen == Screen.LaporanEmas ||
                             appState.currentScreen == Screen.BeliEmas ||
+                            appState.currentScreen == Screen.JualEmas ||
                             appState.currentScreen == Screen.CairkanPilihBank ||
                             appState.currentScreen == Screen.CairkanInputRekening ||
                             appState.currentScreen == Screen.CairkanKonfirmasi ||
@@ -110,6 +112,7 @@ class MainActivity : ComponentActivity() {
                                 Screen.CairkanMain -> CairkanMainScreen(appState = appState)
                                 Screen.TarikSaldo -> TarikSaldoScreen(appState = appState)
                                 Screen.BeliEmas -> BeliEmasScreen(appState = appState)
+                                Screen.JualEmas -> JualEmasScreen(appState = appState)
                                 Screen.CairkanPilihBank -> CairkanPilihBankScreen(appState = appState)
                                 Screen.CairkanInputRekening -> CairkanInputRekeningScreen(appState = appState)
                                 Screen.CairkanKonfirmasi -> CairkanKonfirmasiScreen(appState = appState)
@@ -124,74 +127,18 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // Congratulatory completion dialog overlay
+                        // Congratulatory completion dialog overlay with Confetti
                         if (appState.showCompletionDialog) {
-                            Dialog(onDismissRequest = { appState.showCompletionDialog = false }) {
-                                Card(
-                                    colors = CardDefaults.cardColors(containerColor = AppWhite),
-                                    shape = RoundedCornerShape(28.dp),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(24.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        // Golden Badge
-                                        Box(
-                                            modifier = Modifier
-                                                .size(80.dp)
-                                                .background(GoldAccentLight, CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "🎉",
-                                                fontSize = 40.sp
-                                            )
-                                        }
-
-                                        Spacer(modifier = Modifier.height(20.dp))
-
-                                        Text(
-                                            text = "Cicilan Emas Lunas!",
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = DarkNavy,
-                                            textAlign = TextAlign.Center
-                                        )
-
-                                        Spacer(modifier = Modifier.height(12.dp))
-
-                                        Text(
-                                            text = "Selamat! Cicilan emas sebesar ${appState.completedInstallmentWeight}g Anda telah lunas terbayar otomatis lewat autosplit QRIS. Emas batangan fisik Anda telah ditransfer ke Tabungan Emas Utama.",
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = SlateGray,
-                                            textAlign = TextAlign.Center,
-                                            lineHeight = 20.sp
-                                        )
-
-                                        Spacer(modifier = Modifier.height(28.dp))
-
-                                        Button(
-                                            onClick = { appState.showCompletionDialog = false },
-                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                                            shape = CircleShape,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(48.dp)
-                                        ) {
-                                            Text(
-                                                text = "Hebat! Terima Kasih",
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            )
-                                        }
-                                    }
+                            com.example.pkl_finance.ui.components.InstallmentCompletedDialog(
+                                targetWeight = appState.completedInstallmentWeight,
+                                onDismiss = { appState.showCompletionDialog = false },
+                                onViewGold = {
+                                    appState.navigateTo(Screen.Emas)
+                                },
+                                onStartNew = {
+                                    appState.navigateTo(Screen.ConfigCicilEmas)
                                 }
-                            }
+                            )
                         }
 
 

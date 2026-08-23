@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,12 +40,15 @@ fun RiwayatEmasDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
 
     val goldTransactions = remember(appState.transactionHistory) {
-        appState.transactionHistory.filter { it.type == "GOLD_BUY" || it.goldAmount > 0.0 }
+        appState.transactionHistory.filter {
+            it.type == "GOLD_BUY" || it.type == "GOLD_SELL" || it.goldAmount > 0.0
+        }
     }
 
     val filteredTransactions = remember(selectedFilter, searchQuery, goldTransactions) {
         val base = when (selectedFilter) {
             "Beli Emas" -> goldTransactions.filter { it.type == "GOLD_BUY" }
+            "Jual Emas" -> goldTransactions.filter { it.type == "GOLD_SELL" }
             "Autosplit QRIS" -> goldTransactions.filter { it.type == "QRIS_IN" }
             else -> goldTransactions
         }
@@ -52,8 +56,16 @@ fun RiwayatEmasDetailScreen(
             base
         } else {
             base.filter { trans ->
-                val titleText = if (trans.type == "GOLD_BUY") "Beli Emas Fisik" else "Autosplit Emas"
-                val subText = if (trans.type == "GOLD_BUY") "Dari Saldo Merchant" else "Ke Cicilan Emas"
+                val titleText = when (trans.type) {
+                    "GOLD_BUY" -> "Beli Emas Digital"
+                    "GOLD_SELL" -> "Jual Emas Digital"
+                    else -> "Autosplit Emas"
+                }
+                val subText = when (trans.type) {
+                    "GOLD_BUY" -> "Dari Saldo Merchant"
+                    "GOLD_SELL" -> "Ke Saldo Merchant"
+                    else -> "Ke Cicilan Emas"
+                }
                 titleText.contains(searchQuery, ignoreCase = true) ||
                 subText.contains(searchQuery, ignoreCase = true) ||
                 trans.title.contains(searchQuery, ignoreCase = true)
@@ -111,25 +123,23 @@ fun RiwayatEmasDetailScreen(
                 .padding(horizontal = 20.dp)
         )
 
-        // Filter chip row
-        Row(
+        // Filter chip row (Horizontally scrollable like Laporan)
+        LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(vertical = 12.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val filters = listOf("Semua", "Beli Emas", "Autosplit QRIS")
-            filters.forEach { filter ->
+            val filters = listOf("Semua", "Beli Emas", "Jual Emas", "Autosplit QRIS")
+            items(filters.size) { index ->
+                val filter = filters[index]
                 val isSelected = selectedFilter == filter
                 Box(
                     modifier = Modifier
                         .background(
                             color = if (isSelected) PrimaryBlue else AppWhite,
                             shape = RoundedCornerShape(20.dp)
-                        )
-                        .border(
-                            BorderStroke(1.dp, if (isSelected) Color.Transparent else Color(0xFFE2E8F0)),
-                            RoundedCornerShape(20.dp)
                         )
                         .clickable { selectedFilter = filter }
                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -189,10 +199,28 @@ fun RiwayatEmasRow(
     onClick: () -> Unit = {}
 ) {
     val isBuy = trans.type == "GOLD_BUY"
-    val titleText = if (isBuy) "Beli Emas Fisik" else "Autosplit Emas"
-    val subText = if (isBuy) "Dari Saldo Merchant" else "Ke Cicilan Emas"
-    val weightText = "+" + String.format("%.4f", trans.goldWeightAdded) + " Gram"
-    val rupiahText = appState.formatRupiah(if (isBuy) -trans.totalAmount else trans.goldAmount)
+    val isSell = trans.type == "GOLD_SELL"
+    val titleText = when {
+        isBuy -> "Beli Emas Digital"
+        isSell -> "Jual Emas Digital"
+        else -> "Autosplit Emas"
+    }
+    val subText = when {
+        isBuy -> "Dari Saldo Merchant"
+        isSell -> "Ke Saldo Merchant"
+        else -> "Ke Cicilan Emas"
+    }
+    val weightText = if (isSell) {
+        "-" + String.format("%.4f", kotlin.math.abs(trans.goldWeightAdded)) + " Gram"
+    } else {
+        "+" + String.format("%.4f", trans.goldWeightAdded) + " Gram"
+    }
+    val weightColor = if (isSell) androidx.compose.ui.graphics.Color(0xFFEF4444) else SuccessGreen
+    val rupiahText = if (isSell) {
+        "+" + appState.formatRupiah(trans.totalAmount).removePrefix("Rp ").let { "Rp $it" }
+    } else {
+        appState.formatRupiah(if (isBuy) -trans.totalAmount else trans.goldAmount)
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = AppWhite),
@@ -249,7 +277,7 @@ fun RiwayatEmasRow(
                     text = weightText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = SuccessGreen
+                    color = weightColor
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(

@@ -549,14 +549,8 @@ fun QrisNewLayout(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 AppButton(
-                    text = "Bagikan",
-                    onClick = {
-                        android.widget.Toast.makeText(
-                            context,
-                            "Link QRIS berhasil disalin ke clipboard!",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    },
+                    text = "Ke Beranda",
+                    onClick = { appState.navigateTo(Screen.Home) },
                     variant = AppButtonVariant.Secondary,
                     modifier = Modifier.weight(1f)
                 )
@@ -839,34 +833,6 @@ fun QrisNewLayout(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            // Bottom buttons (Bagikan & Bantuan CS)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                AppButton(
-                    text = "Bagikan",
-                    onClick = {
-                        android.widget.Toast.makeText(
-                            context,
-                             "Link QRIS berhasil disalin ke clipboard!",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    variant = AppButtonVariant.Secondary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                AppButton(
-                    text = "Bantuan CS",
-                    onClick = { },
-                    variant = AppButtonVariant.Secondary,
-                    modifier = Modifier.weight(1f)
-                )
             }
         }
     }

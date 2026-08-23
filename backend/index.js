@@ -146,16 +146,14 @@ const handleDatabaseError = (res, error) => {
   return res.status(500).json({ error: 'Database Internal Error: ' + msg });
 };
 
-// -------------------------------------------------------------
 // 6. API ENDPOINTS
-// -------------------------------------------------------------
 
 // Test Route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend PKL Finance is running successfully!' });
 });
 
-// GET Current Gold Price & Trend from database
+// GET Current Gold Price & Trend 
 app.get('/api/gold-price', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -166,36 +164,72 @@ app.get('/api/gold-price', async (req, res) => {
 
     if (error) return handleDatabaseError(res, error);
 
-    let price = 2605000.0;
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'Data harga emas belum tersedia di database' });
+    }
+
+    const price = parseFloat(data[0].price);
+    const buyPrice = price;
+    const sellPrice = data[0].buyback_price
+      ? parseFloat(data[0].buyback_price)
+      : (data[0].sell_price ? parseFloat(data[0].sell_price) : Math.round(price * 0.9486));
+
     let change = 0.0;
     let percent = 0.0;
     let trend = 'up';
 
-    if (data && data.length > 0) {
-      price = parseFloat(data[0].price);
-      if (data.length > 1) {
-        const prevPrice = parseFloat(data[1].price);
-        change = price - prevPrice;
-        percent = prevPrice > 0 ? (change / prevPrice) * 100 : 0.0;
-        trend = change >= 0 ? 'up' : 'down';
-      }
+    if (data.length > 1) {
+      const prevPrice = parseFloat(data[1].price);
+      change = price - prevPrice;
+      percent = prevPrice > 0 ? (change / prevPrice) * 100 : 0.0;
+      trend = change >= 0 ? 'up' : 'down';
     }
+
+    const spreadDiff = buyPrice - sellPrice;
+    const spreadPercent = parseFloat(((spreadDiff / buyPrice) * 100).toFixed(2));
 
     res.json({
       price,
+      buyPrice,
+      sellPrice,
+      spreadDiff,
+      spreadPercent,
       change,
       percent,
       trend,
-      updated_at: data && data.length > 0 ? data[0].updated_at : null
+      updated_at: data[0].updated_at
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// -------------------------------------------------------------
+// GET Gold Price History (last N entries) for chart display
+app.get('/api/gold-price/history', async (req, res) => {
+  const limit = parseInt(req.query.limit) || 6;
+  try {
+    const { data, error } = await supabase
+      .from('gold_price')
+      .select('price, updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+
+    if (error) return handleDatabaseError(res, error);
+
+    // Return in chronological order (oldest first) for chart
+    const history = (data || []).reverse().map(row => ({
+      price: parseFloat(row.price),
+      updated_at: row.updated_at
+    }));
+
+    res.json({ history });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // FETCH MERCHANTS
-// -------------------------------------------------------------
 app.get('/api/merchants', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -327,41 +361,224 @@ app.post('/api/transactions/buy-gold', authenticateMerchant, validateBuyGold, as
   }
 });
 
-// Perform Gold Sale (Transactional RPC)
+// Perform Gold Sale (Direct Reliable Transaction)
 app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, async (req, res) => {
   const { merchantId, goldWeight } = req.body;
   try {
-    const { data, error } = await supabase
-      .rpc('sell_gold_tx', {
-        p_merchant_id: merchantId,
-        p_gold_weight: goldWeight
-      });
+    // 1. Ambil harga emas & buyback terbaru langsung dari database
+    const { data: priceData, error: priceErr } = await supabase
+      .from('gold_price')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .limit(1);
 
-    if (error) return handleDatabaseError(res, error);
-    res.json(data);
+    if (priceErr || !priceData || priceData.length === 0) {
+      return res.status(404).json({ error: 'Harga emas belum tersedia di database' });
+    }
+
+    const sellRate = priceData[0].buyback_price
+      ? parseFloat(priceData[0].buyback_price)
+      : (priceData[0].sell_price ? parseFloat(priceData[0].sell_price) : Math.round(parseFloat(priceData[0].price) * 0.9486));
+
+    const totalRupiah = Math.round(goldWeight * sellRate);
+
+    // 2. Ambil saldo merchant
+    const { data: balanceData, error: balErr } = await supabase
+      .from('balance')
+      .select('*')
+      .eq('merchant_id', merchantId)
+      .single();
+
+    if (balErr || !balanceData) {
+      return res.status(404).json({ error: 'Saldo merchant tidak ditemukan' });
+    }
+
+    const currentGoldBal = parseFloat(balanceData.gold_balance);
+    if (currentGoldBal < goldWeight) {
+      return res.status(400).json({ error: 'Saldo emas tidak mencukupi untuk penjualan ini' });
+    }
+
+    const newGoldBalance = Math.max(0, currentGoldBal - goldWeight);
+    const newMainBalance = parseFloat(balanceData.main_balance) + totalRupiah;
+
+    // 3. Update saldo merchant di database
+    const { error: updateErr } = await supabase
+      .from('balance')
+      .update({
+        gold_balance: newGoldBalance,
+        main_balance: newMainBalance
+      })
+      .eq('merchant_id', merchantId);
+
+    if (updateErr) return handleDatabaseError(res, updateErr);
+
+    // 4. Buat ID transaksi unik
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const yearSuffix = new Date().getFullYear().toString().slice(-2);
+    const txId = `JE${yearSuffix}${randomNum}QG`;
+
+    // 5. Catat transaksi penjualan ke tabel transaksi
+    const { data: txData, error: txErr } = await supabase
+      .from('transaksi')
+      .insert([{
+        id: txId,
+        merchant_id: merchantId,
+        type: 'GOLD_SELL',
+        title: 'Jual Emas Digital',
+        total_amount: totalRupiah,
+        main_amount: totalRupiah,
+        gold_amount: 0.0,
+        gold_weight_added: -goldWeight,
+        mdr_fee: 0.0
+      }])
+      .select()
+      .single();
+
+    if (txErr) return handleDatabaseError(res, txErr);
+
+    res.json(txData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Simulate Incoming QRIS Payment (Transactional RPC)
+// -------------------------------------------------------------
+// HELPER: Proses Transaksi QRIS dengan Proteksi Auto-Cap Cicilan
+// -------------------------------------------------------------
+async function processQrisPayment(merchantId, amount) {
+  // 1. Ambil data merchant untuk cek status UMI / Non-UMI
+  const { data: merchant, error: mErr } = await supabase
+    .from('merchant')
+    .select('*')
+    .eq('id', merchantId)
+    .single();
+
+  if (mErr || !merchant) {
+    throw new Error('Merchant tidak ditemukan');
+  }
+
+  // 2. Hitung MDR Fee
+  let mdrRate = merchant.is_umi
+    ? (amount <= MDR_LIMIT ? 0.0 : MDR_UMI_RATE)
+    : MDR_NON_UMI_RATE;
+  const mdrFee = Math.round(amount * mdrRate);
+  const netAmount = amount - mdrFee;
+
+  // 3. Ambil harga emas terkini dari database
+  const { data: priceData } = await supabase
+    .from('gold_price')
+    .select('price')
+    .order('updated_at', { ascending: false })
+    .limit(1);
+
+  const goldPrice = priceData && priceData.length > 0 ? parseFloat(priceData[0].price) : 2725000.0;
+
+  // 4. Cek Cicilan Emas Aktif
+  const { data: installments } = await supabase
+    .from('installment')
+    .select('*')
+    .eq('merchant_id', merchantId)
+    .eq('is_active', true)
+    .limit(1);
+
+  let goldCut = 0.0;
+  let balanceCut = netAmount;
+  let goldWeightAdded = 0.0;
+  let additionalGoldReward = 0.0;
+
+  if (installments && installments.length > 0) {
+    const inst = installments[0];
+    const totalInstAmount = parseFloat(inst.total_installment_amount);
+    const currentAccAmount = parseFloat(inst.accumulated_amount);
+    const remainingInstallment = Math.max(0, totalInstAmount - currentAccAmount);
+
+    // Potongan normal sesuai persentase split
+    const rawGoldCut = netAmount * (inst.split_percentage / 100.0);
+
+    // 🌟 AUTO-CAP LOGIC (Kasus 2):
+    // Jika potongan normal melebihi sisa tagihan, potong PAS sebesar sisa tagihan!
+    if (rawGoldCut > remainingInstallment) {
+      goldCut = remainingInstallment;
+    } else {
+      goldCut = rawGoldCut;
+    }
+
+    // Kelebihan uang otomatis masuk ke Saldo Merchant (Rupiah)
+    balanceCut = netAmount - goldCut;
+    goldWeightAdded = goldCut / goldPrice;
+
+    const newAccumulatedAmount = currentAccAmount + goldCut;
+    const newAccumulatedWeight = parseFloat(inst.accumulated_gold_weight) + goldWeightAdded;
+    const isCompleted = newAccumulatedAmount >= (totalInstAmount - 1.0); // toleransi pembulatan
+
+    // Update status cicilan
+    await supabase
+      .from('installment')
+      .update({
+        accumulated_amount: newAccumulatedAmount,
+        accumulated_gold_weight: newAccumulatedWeight,
+        is_active: !isCompleted
+      })
+      .eq('id', inst.id);
+
+    // Jika lunas, seluruh target gram emas diberikan ke saldo emas merchant
+    if (isCompleted) {
+      additionalGoldReward = parseFloat(inst.target_weight);
+    }
+  }
+
+  // 5. Update Saldo Merchant & Saldo Emas
+  const { data: currentBal } = await supabase
+    .from('balance')
+    .select('*')
+    .eq('merchant_id', merchantId)
+    .single();
+
+  const newMainBal = (currentBal ? parseFloat(currentBal.main_balance) : 0.0) + balanceCut;
+  const newGoldBal = (currentBal ? parseFloat(currentBal.gold_balance) : 0.0) + additionalGoldReward;
+
+  await supabase
+    .from('balance')
+    .update({
+      main_balance: newMainBal,
+      gold_balance: newGoldBal
+    })
+    .eq('merchant_id', merchantId);
+
+  // 6. Buat Record Transaksi QRIS_IN
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  const yearSuffix = new Date().getFullYear().toString().slice(-2);
+  const txId = `QRIS${yearSuffix}${randomNum}QG`;
+
+  const { data: txRecord, error: txErr } = await supabase
+    .from('transaksi')
+    .insert([{
+      id: txId,
+      merchant_id: merchantId,
+      type: 'QRIS_IN',
+      title: 'Pembayaran QRIS - Pelanggan',
+      total_amount: amount,
+      main_amount: balanceCut,
+      gold_amount: goldCut,
+      gold_weight_added: goldWeightAdded,
+      mdr_fee: mdrFee
+    }])
+    .select()
+    .single();
+
+  if (txErr) throw txErr;
+  return txRecord;
+}
+
+// Simulate Incoming QRIS Payment
 app.post('/api/transactions/simulate-qris', validateSimulateQris, async (req, res) => {
   const { merchantId, amount } = req.body;
   try {
-    const { data, error } = await supabase
-      .rpc('simulate_qris_payment_tx', {
-        p_merchant_id: merchantId,
-        p_amount: amount,
-        p_mdr_umi_rate: MDR_UMI_RATE,
-        p_mdr_non_umi_rate: MDR_NON_UMI_RATE,
-        p_mdr_limit: MDR_LIMIT
-      });
-
-    if (error) return handleDatabaseError(res, error);
+    const txData = await processQrisPayment(merchantId, amount);
     res.json({
       success: true,
       message: 'Simulasi transaksi berhasil diproses oleh server!',
-      transaction: data
+      transaction: txData
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -391,16 +608,21 @@ app.get('/api/gold-price/current', async (req, res) => {
 // POST: Tambah Harga Emas Baru (Opsi 2 - Admin)
 // -------------------------------------------------------------
 app.post('/api/gold-price', authenticateMerchant, async (req, res) => {
-  const { price } = req.body;
+  const { price, buyback_price } = req.body;
 
   if (!price || typeof price !== 'number' || price <= 0) {
     return res.status(400).json({ error: 'Harga emas harus berupa angka positif' });
   }
 
   try {
+    const payload = { price: price };
+    if (buyback_price && typeof buyback_price === 'number') {
+      payload.buyback_price = buyback_price;
+    }
+
     const { data, error } = await supabase
       .from('gold_price')
-      .insert([{ price: price }])
+      .insert([payload])
       .select();
 
     if (error) return handleDatabaseError(res, error);
@@ -683,30 +905,17 @@ app.get('/api/qris/status/:orderId', async (req, res) => {
 
         const { merchantId, amount } = orderInfo;
 
-        // Update saldo merchant via Supabase RPC (sama seperti simulate-qris)
+        // Update saldo merchant dengan auto-cap cicilan
         try {
-          const { data: txData, error: txError } = await supabase
-            .rpc('simulate_qris_payment_tx', {
-              p_merchant_id: merchantId,
-              p_amount: amount,
-              p_mdr_umi_rate: MDR_UMI_RATE,
-              p_mdr_non_umi_rate: MDR_NON_UMI_RATE,
-              p_mdr_limit: MDR_LIMIT
-            });
-
-          if (txError) {
-            console.error('[QRIS] Supabase RPC Error:', txError);
-            // Tetap return paid, biar client tahu sudah bayar
-          }
+          const txData = await processQrisPayment(merchantId, amount);
 
           return res.json({
             status: 'paid',
             transaction: txData || null,
             midtransStatus: status
           });
-
-        } catch (rpcErr) {
-          console.error('[QRIS] RPC Exception:', rpcErr);
+        } catch (procErr) {
+          console.error('[QRIS] Process Payment Error:', procErr);
           return res.json({ status: 'paid', transaction: null, midtransStatus: status });
         }
 
