@@ -1,7 +1,9 @@
 package com.example.pkl_finance.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,9 +48,12 @@ fun AppButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed && !isDisabled) 0.97f else 1f,
-        animationSpec = tween(100),
-        label = "buttonScale"
+        targetValue = if (isPressed && !isDisabled) 0.94f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "expressiveButtonScale"
     )
 
     val containerColor: Color
@@ -131,10 +136,8 @@ fun AppButton(
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(22.dp),
-                color = contentColor,
-                strokeWidth = 2.dp
+            ExpressiveBouncyDotsLoader(
+                color = contentColor
             )
         } else {
             Row(

@@ -163,10 +163,10 @@ fun RiwayatEmasDetailScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Belum ada riwayat emas",
-                    fontSize = 14.sp,
-                    color = SlateGray
+                ExpressiveEmptyState(
+                    title = "Belum Ada Riwayat Emas",
+                    subtitle = "Riwayat pembelian, penjualan, dan autosplit emas Anda akan muncul di sini.",
+                    icon = androidx.compose.material.icons.Icons.Default.Paid
                 )
             }
         } else {

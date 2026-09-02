@@ -217,8 +217,6 @@ fun ReceiptScreen(
                                 DetailReceiptRow(label = "Pengirim", value = shop)
                                 Spacer(modifier = Modifier.height(12.dp))
                                 
-                                DetailReceiptRow(label = "Total Bayar", value = appState.formatRupiah(trans.totalAmount))
-                                Spacer(modifier = Modifier.height(12.dp))
                                 DetailReceiptRow(label = "MDR", value = "- " + appState.formatRupiah(trans.mdrFee))
                                 Spacer(modifier = Modifier.height(12.dp))
                                 

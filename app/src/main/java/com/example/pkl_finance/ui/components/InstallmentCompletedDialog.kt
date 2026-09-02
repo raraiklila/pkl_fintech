@@ -1,5 +1,8 @@
 package com.example.pkl_finance.ui.components
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -10,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -62,13 +66,9 @@ fun ConfettiCanvas(modifier: Modifier = Modifier) {
         }
     }
 
-    var frame by remember { mutableLongStateOf(0L) }
-
     LaunchedEffect(Unit) {
-        val startTime = withFrameNanos { it }
         while (isActive) {
-            withFrameNanos { now ->
-                frame = (now - startTime) / 16_000_000L
+            withFrameNanos { _ ->
                 particles.forEach { p ->
                     p.x += p.vx
                     p.y += p.vy
@@ -84,7 +84,7 @@ fun ConfettiCanvas(modifier: Modifier = Modifier) {
 
     Canvas(modifier = modifier) {
         particles.forEach { p ->
-            rotate(degrees = p.rotation, pivot = Offset(p.x, p.y)) {
+            rotate(p.rotation, Offset(p.x, p.y)) {
                 drawRect(
                     color = p.color,
                     topLeft = Offset(p.x - p.size / 2, p.y - p.size / 2),
@@ -103,6 +103,18 @@ fun InstallmentCompletedDialog(
     onViewGold: () -> Unit,
     onStartNew: () -> Unit = {}
 ) {
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { isVisible = true }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "dialogInstallmentScale"
+    )
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -119,10 +131,11 @@ fun InstallmentCompletedDialog(
             // Main Dialog Card (Matching Design System exactly)
             Card(
                 colors = CardDefaults.cardColors(containerColor = AppWhite),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(32.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.92f)
+                    .scale(scale)
                     .padding(vertical = 16.dp)
             ) {
                 Column(

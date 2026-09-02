@@ -1,8 +1,12 @@
 package com.example.pkl_finance.ui.components
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -220,13 +225,24 @@ fun RowScope.CapsuleNavItem(
     onClick: () -> Unit,
     icon: @Composable (Boolean) -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.90f else if (isSelected) 1.05f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "navItemScale"
+    )
+
     // Keep weight constant at 1f so there are no layout width changes or shifting
     Column(
         modifier = Modifier
             .weight(1f)
             .fillMaxHeight()
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
@@ -237,11 +253,12 @@ fun RowScope.CapsuleNavItem(
         Box(
             modifier = Modifier
                 .wrapContentSize()
+                .scale(scale)
                 .then(
                     if (isSelected) {
                         Modifier
-                            .background(PrimaryBlueLight, RoundedCornerShape(14.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .background(PrimaryBlueLight, RoundedCornerShape(16.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
                     } else {
                         Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     }

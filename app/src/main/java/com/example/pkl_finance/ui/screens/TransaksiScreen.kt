@@ -75,7 +75,7 @@ fun TransaksiScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Search Input Bar
+        // Search Input Bar (Material 3 Expressive Pill SearchBar)
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -84,7 +84,7 @@ fun TransaksiScreen(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = SlateGray,
+                    tint = PrimaryBlue,
                     modifier = Modifier.size(20.dp)
                 )
             },
@@ -101,7 +101,7 @@ fun TransaksiScreen(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(16.dp),
+            shape = CircleShape,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PrimaryBlue,
                 unfocusedBorderColor = Color(0xFFE2E8F0),
@@ -111,6 +111,7 @@ fun TransaksiScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
+                .shadow(3.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.06f))
         )
 
         // Filter chips
@@ -151,10 +152,9 @@ fun TransaksiScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Belum ada transaksi",
-                    fontSize = 14.sp,
-                    color = SlateGray
+                com.example.pkl_finance.ui.components.ExpressiveEmptyState(
+                    title = "Belum Ada Transaksi",
+                    subtitle = "Riwayat pembayaran QRIS, pencairan saldo, dan transaksi emas Anda akan otomatis tercatat di sini."
                 )
             }
         } else {

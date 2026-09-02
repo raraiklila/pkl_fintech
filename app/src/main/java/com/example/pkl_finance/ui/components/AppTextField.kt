@@ -101,7 +101,7 @@ fun AppTextField(
             singleLine = singleLine,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor      = focusBorder,
                 focusedLabelColor       = focusBorder,
@@ -115,8 +115,8 @@ fun AppTextField(
                 disabledBorderColor     = ColorBorder,
                 disabledLabelColor      = SlateGray.copy(alpha = 0.5f),
                 cursorColor             = Blue500,
-                focusedContainerColor   = ColorSurface,
-                unfocusedContainerColor = ColorBackground,
+                focusedContainerColor   = ExpressiveSurfaceTint,
+                unfocusedContainerColor = AppWhite,
                 disabledContainerColor  = ColorBorder.copy(alpha = 0.3f),
             ),
             modifier = Modifier.fillMaxWidth()

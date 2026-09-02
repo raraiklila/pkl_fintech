@@ -1,5 +1,6 @@
 package com.example.pkl_finance.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -39,6 +40,18 @@ import com.example.pkl_finance.R
 import com.example.pkl_finance.data.AppState
 import com.example.pkl_finance.data.Screen
 import com.example.pkl_finance.data.Transaction
+import com.example.pkl_finance.ui.theme.AppWhite
+import com.example.pkl_finance.ui.theme.BackgroundLight
+import com.example.pkl_finance.ui.theme.Blue400
+import com.example.pkl_finance.ui.theme.Blue50
+import com.example.pkl_finance.ui.theme.DarkNavy
+import com.example.pkl_finance.ui.theme.GoldAccent
+import com.example.pkl_finance.ui.theme.PrimaryBlue
+import com.example.pkl_finance.ui.theme.PrimaryBlueDark
+import com.example.pkl_finance.ui.theme.PrimaryBlueLight
+import com.example.pkl_finance.ui.theme.SlateGray
+import com.example.pkl_finance.ui.theme.SuccessGreen
+import com.example.pkl_finance.ui.theme.Yellow100
 import com.example.pkl_finance.ui.theme.*
 import com.example.pkl_finance.ui.components.*
 
@@ -197,16 +210,19 @@ fun EmasScreen(
                             )
                         }
 
+                        val badgeBg = if (goldPrice.trend == "up") Color(0xFFDCFCE7) else Color(0xFFFEE2E2)
+                        val badgeText = if (goldPrice.trend == "up") Color(0xFF15803D) else Color(0xFFB91C1C)
+
                         Box(
                             modifier = Modifier
-                                .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                .background(badgeBg, RoundedCornerShape(12.dp))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
-                                text = "$trendArrow $trendSign${String.format("%.2f", goldPrice.percent)}%",
+                                text = "$trendArrow $trendSign${String.format(java.util.Locale.US, "%.2f", goldPrice.percent)}%",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (goldPrice.trend == "up") Color(0xFF047857) else Color(0xFFB91C1C)
+                                color = badgeText
                             )
                         }
                     }
@@ -260,11 +276,7 @@ fun EmasScreen(
                     label = "Riwayat Emas",
                     iconResId = R.drawable.ic_menu_cetak,
                     onClick = {
-                        if (!appState.isVerified) {
-                            showVerificationDialog = true
-                        } else {
-                            appState.navigateTo(Screen.RiwayatEmasDetail)
-                        }
+                        appState.navigateTo(Screen.RiwayatEmasDetail)
                     }
                 )
             }
@@ -473,6 +485,11 @@ fun EmasAreaChart(
         }
     }
 
+    val chartProgress = remember { Animatable(0f) }
+    LaunchedEffect(prices) {
+        chartProgress.animateTo(1f, animationSpec = tween(1000, easing = FastOutSlowInEasing))
+    }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = AppWhite),
         shape = RoundedCornerShape(20.dp),
@@ -587,8 +604,16 @@ fun EmasAreaChart(
                         )
                     )
 
-                    // Draw circles at data points
-                    coords.forEach { pt ->
+                    // Draw circles at data points with Expressive Glowing Halo on latest point
+                    coords.forEachIndexed { idx, pt ->
+                        if (idx == coords.lastIndex) {
+                            // Expressive Halo Ring on latest price point
+                            drawCircle(
+                                color = PrimaryBlue.copy(alpha = (0.25f * chartProgress.value).coerceIn(0f, 1f)),
+                                radius = 9.dp.toPx(),
+                                center = pt
+                            )
+                        }
                         drawCircle(
                             color = PrimaryBlue,
                             radius = 4.dp.toPx(),

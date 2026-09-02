@@ -1,7 +1,11 @@
 package com.example.pkl_finance.ui.components
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -16,6 +20,15 @@ fun CustomProgressBar(
     trackColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "progressBarAnimation"
+    )
+
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
@@ -36,8 +49,8 @@ fun CustomProgressBar(
             cornerRadius = CornerRadius(lineThickness / 2f, lineThickness / 2f)
         )
         
-        if (progress > 0f) {
-            val progressWidth = activeWidth * progress
+        if (animatedProgress > 0f) {
+            val progressWidth = activeWidth * animatedProgress
             
             // Draw progress line
             drawRoundRect(

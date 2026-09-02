@@ -48,6 +48,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
+import com.example.pkl_finance.ui.components.ExpressiveLoadingIndicator
 import com.example.pkl_finance.data.AppState
 import com.example.pkl_finance.data.Screen
 import com.example.pkl_finance.data.Transaction
@@ -331,9 +332,8 @@ fun QrisNewLayout(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        CircularProgressIndicator(
-                                            color = Blue500,
-                                            modifier = Modifier.size(48.dp)
+                                        ExpressiveLoadingIndicator(
+                                            size = 54.dp
                                         )
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Text(

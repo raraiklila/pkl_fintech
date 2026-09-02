@@ -112,6 +112,7 @@ fun Pkl_financeTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography  = Typography,
+        shapes      = ExpressiveShapes,
         content     = content
     )
 }
