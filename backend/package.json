@@ -1,11 +1,12 @@
 {
   "name": "pkl-finance-backend",
   "version": "1.0.0",
-  "description": "Backend API for PKL Finance using Node.js and Supabase",
+  "description": "Backend API for Qigold",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

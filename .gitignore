@@ -13,3 +13,16 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Kotlin & IDE temporary files
+.kotlin/
+.postman/
+
+# Temporary extraction & PDF documents
+*.pdf
+extracted_laporan_pkl.txt
+laporan_*
+page_*.png
+stream_samples.txt
+revisi_bab5_pkl.md
+backend/test.js

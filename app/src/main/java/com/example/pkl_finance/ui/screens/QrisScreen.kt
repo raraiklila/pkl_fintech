@@ -403,9 +403,9 @@ fun QrisNewLayout(
                                                 .fillMaxSize()
                                                 .padding(20.dp),
                                             loading = {
-                                                CircularProgressIndicator(
+                                                ExpressiveWavyCircularProgressIndicator(
                                                     color = Blue500,
-                                                    modifier = Modifier.size(32.dp)
+                                                    size = 36.dp
                                                 )
                                             },
                                             error = {
@@ -419,20 +419,22 @@ fun QrisNewLayout(
                                                 modifier = Modifier
                                                     .align(Alignment.BottomCenter)
                                                     .padding(bottom = 8.dp)
-                                                    .background(Color(0xCC003366), RoundedCornerShape(8.dp))
-                                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                                                    .background(Color(0xCC003366), RoundedCornerShape(12.dp))
+                                                    .padding(horizontal = 14.dp, vertical = 6.dp)
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    CircularProgressIndicator(
+                                                    ExpressiveWavyCircularProgressIndicator(
                                                         color = Color.White,
-                                                        modifier = Modifier.size(10.dp),
-                                                        strokeWidth = 1.5.dp
+                                                        trackColor = Color.White.copy(alpha = 0.25f),
+                                                        size = 14.dp,
+                                                        strokeWidth = 2.dp
                                                     )
-                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Spacer(modifier = Modifier.width(8.dp))
                                                     Text(
                                                         text = "Menunggu pembayaran...",
                                                         color = Color.White,
-                                                        fontSize = 10.sp
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Medium
                                                     )
                                                 }
                                             }

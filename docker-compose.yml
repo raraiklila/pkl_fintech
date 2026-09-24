@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pkl_finance_backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  fintech-admin:
+    build:
+      context: ./fintech-admin
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: https://tidrxxktcsbofqznaqmq.supabase.co
+        VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpZHJ4eGt0Y3Nib2Zxem5hcW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMDc1NzYsImV4cCI6MjA5OTc4MzU3Nn0.4NZcqnW_a6NfQQ4WHn2f7Vbiicjazi0buNmnHhCDmn0
+    container_name: pkl_finance_admin_web
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: always
