@@ -13,6 +13,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Root & Health Check Routes
+app.get('/', (req, res) => {
+  res.json({ status: 'online', message: 'Backend PKL Finance API is running successfully!' });
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend PKL Finance is running successfully!' });
+});
+
 // -------------------------------------------------------------
 // 1. APP CONSTANTS
 // -------------------------------------------------------------
