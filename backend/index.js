@@ -4,7 +4,6 @@ const dotenv = require('dotenv');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -13,34 +12,21 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Root & Health Check Routes
-app.get('/', (req, res) => {
-  res.json({ status: 'online', message: 'Backend PKL Finance API is running successfully!' });
-});
-
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend PKL Finance is running successfully!' });
-});
-
-// -------------------------------------------------------------
-// 1. APP CONSTANTS
-// -------------------------------------------------------------
+// Konstanta MDR (Merchant Discount Rate)
 const MDR_UMI_RATE = 0.003;
 const MDR_NON_UMI_RATE = 0.007;
 const MDR_LIMIT = 500000.0;
 const MOCK_AUTH_TOKEN = 'mock-jwt-token-for-merchant-1';
 
-// Midtrans Sandbox Config
+// Konfigurasi Midtrans Sandbox
 const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY || '';
 const MIDTRANS_BASE_URL = process.env.MIDTRANS_BASE_URL || 'https://api.sandbox.midtrans.com';
 const midtransAuth = Buffer.from(MIDTRANS_SERVER_KEY + ':').toString('base64');
 
-// In-memory map: orderId -> merchantId (untuk dipakai saat webhook/status check)
+// Map orderId -> merchantId untuk keperluan status check QRIS
 const qrisOrderMap = {};
 
-// -------------------------------------------------------------
-// 2. SUPABASE INITIALIZATION
-// -------------------------------------------------------------
+// Inisialisasi Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
 
@@ -50,9 +36,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
 
-// -------------------------------------------------------------
-// 3. SECURE AUTHENTICATION MIDDLEWARE
-// -------------------------------------------------------------
+// Middleware autentikasi merchant
 const authenticateMerchant = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -76,9 +60,7 @@ const authenticateMerchant = (req, res, next) => {
   return res.status(403).json({ error: 'Akses ditolak: Token otentikasi tidak valid' });
 };
 
-// -------------------------------------------------------------
-// 4. ROBUST INPUT VALIDATION MIDDLEWARE
-// -------------------------------------------------------------
+// Validasi request body
 const validateWithdraw = (req, res, next) => {
   const { merchantId, amount } = req.body;
   if (!merchantId || typeof merchantId !== 'number' || merchantId <= 0) {
@@ -140,9 +122,6 @@ const validateSetupInstallment = (req, res, next) => {
   next();
 };
 
-// -------------------------------------------------------------
-// 5. DETAILED ERROR HANDLING HELPER
-// -------------------------------------------------------------
 const handleDatabaseError = (res, error) => {
   console.error('Database Error:', error);
   const msg = error.message || '';
@@ -155,14 +134,10 @@ const handleDatabaseError = (res, error) => {
   return res.status(500).json({ error: 'Database Internal Error: ' + msg });
 };
 
-// 6. API ENDPOINTS
-
-// Test Route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend PKL Finance is running successfully!' });
 });
 
-// GET Current Gold Price & Trend 
 app.get('/api/gold-price', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -213,7 +188,7 @@ app.get('/api/gold-price', async (req, res) => {
   }
 });
 
-// GET Gold Price History (last N entries) for chart display
+// Riwayat harga emas untuk tampilan chart
 app.get('/api/gold-price/history', async (req, res) => {
   const limit = parseInt(req.query.limit) || 6;
   try {
@@ -225,7 +200,6 @@ app.get('/api/gold-price/history', async (req, res) => {
 
     if (error) return handleDatabaseError(res, error);
 
-    // Return in chronological order (oldest first) for chart
     const history = (data || []).reverse().map(row => ({
       price: parseFloat(row.price),
       updated_at: row.updated_at
@@ -238,7 +212,6 @@ app.get('/api/gold-price/history', async (req, res) => {
 });
 
 
-// FETCH MERCHANTS
 app.get('/api/merchants', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -252,7 +225,6 @@ app.get('/api/merchants', async (req, res) => {
   }
 });
 
-// Fetch Single Merchant by ID
 app.get('/api/merchants/:id', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -268,7 +240,6 @@ app.get('/api/merchants/:id', async (req, res) => {
   }
 });
 
-// Fetch Balances by Merchant ID
 app.get('/api/balances/:merchantId', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -284,7 +255,6 @@ app.get('/api/balances/:merchantId', async (req, res) => {
   }
 });
 
-// Fetch Transaction Ledger History by Merchant ID
 app.get('/api/transactions/:merchantId', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -300,7 +270,6 @@ app.get('/api/transactions/:merchantId', async (req, res) => {
   }
 });
 
-// Fetch Active Installment by Merchant ID
 app.get('/api/installments/:merchantId', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -317,7 +286,6 @@ app.get('/api/installments/:merchantId', async (req, res) => {
   }
 });
 
-// Setup Installment (Transactional RPC)
 app.post('/api/installments', authenticateMerchant, validateSetupInstallment, async (req, res) => {
   const { merchantId, targetWeight, totalInstallmentAmount, splitPercentage } = req.body;
   try {
@@ -336,7 +304,6 @@ app.post('/api/installments', authenticateMerchant, validateSetupInstallment, as
   }
 });
 
-// Perform Cash Withdrawal (Transactional RPC)
 app.post('/api/transactions/withdraw', authenticateMerchant, validateWithdraw, async (req, res) => {
   const { merchantId, amount } = req.body;
   try {
@@ -353,7 +320,6 @@ app.post('/api/transactions/withdraw', authenticateMerchant, validateWithdraw, a
   }
 });
 
-// Perform Gold Purchase (Transactional RPC)
 app.post('/api/transactions/buy-gold', authenticateMerchant, validateBuyGold, async (req, res) => {
   const { merchantId, amount } = req.body;
   try {
@@ -370,11 +336,9 @@ app.post('/api/transactions/buy-gold', authenticateMerchant, validateBuyGold, as
   }
 });
 
-// Perform Gold Sale (Direct Reliable Transaction)
 app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, async (req, res) => {
   const { merchantId, goldWeight } = req.body;
   try {
-    // 1. Ambil harga emas & buyback terbaru langsung dari database
     const { data: priceData, error: priceErr } = await supabase
       .from('gold_price')
       .select('*')
@@ -391,7 +355,6 @@ app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, 
 
     const totalRupiah = Math.round(goldWeight * sellRate);
 
-    // 2. Ambil saldo merchant
     const { data: balanceData, error: balErr } = await supabase
       .from('balance')
       .select('*')
@@ -410,7 +373,6 @@ app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, 
     const newGoldBalance = Math.max(0, currentGoldBal - goldWeight);
     const newMainBalance = parseFloat(balanceData.main_balance) + totalRupiah;
 
-    // 3. Update saldo merchant di database
     const { error: updateErr } = await supabase
       .from('balance')
       .update({
@@ -421,12 +383,10 @@ app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, 
 
     if (updateErr) return handleDatabaseError(res, updateErr);
 
-    // 4. Buat ID transaksi unik
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     const yearSuffix = new Date().getFullYear().toString().slice(-2);
     const txId = `JE${yearSuffix}${randomNum}QG`;
 
-    // 5. Catat transaksi penjualan ke tabel transaksi
     const { data: txData, error: txErr } = await supabase
       .from('transaksi')
       .insert([{
@@ -451,11 +411,8 @@ app.post('/api/transactions/sell-gold', authenticateMerchant, validateSellGold, 
   }
 });
 
-// -------------------------------------------------------------
-// HELPER: Proses Transaksi QRIS dengan Proteksi Auto-Cap Cicilan
-// -------------------------------------------------------------
+// Proses transaksi QRIS masuk + auto-split ke cicilan emas
 async function processQrisPayment(merchantId, amount) {
-  // 1. Ambil data merchant untuk cek status UMI / Non-UMI
   const { data: merchant, error: mErr } = await supabase
     .from('merchant')
     .select('*')
@@ -466,14 +423,12 @@ async function processQrisPayment(merchantId, amount) {
     throw new Error('Merchant tidak ditemukan');
   }
 
-  // 2. Hitung MDR Fee
   let mdrRate = merchant.is_umi
     ? (amount <= MDR_LIMIT ? 0.0 : MDR_UMI_RATE)
     : MDR_NON_UMI_RATE;
   const mdrFee = Math.round(amount * mdrRate);
   const netAmount = amount - mdrFee;
 
-  // 3. Ambil harga emas terkini dari database
   const { data: priceData } = await supabase
     .from('gold_price')
     .select('price')
@@ -482,7 +437,6 @@ async function processQrisPayment(merchantId, amount) {
 
   const goldPrice = priceData && priceData.length > 0 ? parseFloat(priceData[0].price) : 2725000.0;
 
-  // 4. Cek Cicilan Emas Aktif
   const { data: installments } = await supabase
     .from('installment')
     .select('*')
@@ -501,26 +455,22 @@ async function processQrisPayment(merchantId, amount) {
     const currentAccAmount = parseFloat(inst.accumulated_amount);
     const remainingInstallment = Math.max(0, totalInstAmount - currentAccAmount);
 
-    // Potongan normal sesuai persentase split
     const rawGoldCut = netAmount * (inst.split_percentage / 100.0);
 
-    // 🌟 AUTO-CAP LOGIC (Kasus 2):
-    // Jika potongan normal melebihi sisa tagihan, potong PAS sebesar sisa tagihan!
+    // Auto-cap: jika potongan melebihi sisa cicilan, potong pas sesuai sisa
     if (rawGoldCut > remainingInstallment) {
       goldCut = remainingInstallment;
     } else {
       goldCut = rawGoldCut;
     }
 
-    // Kelebihan uang otomatis masuk ke Saldo Merchant (Rupiah)
     balanceCut = netAmount - goldCut;
     goldWeightAdded = goldCut / goldPrice;
 
     const newAccumulatedAmount = currentAccAmount + goldCut;
     const newAccumulatedWeight = parseFloat(inst.accumulated_gold_weight) + goldWeightAdded;
-    const isCompleted = newAccumulatedAmount >= (totalInstAmount - 1.0); // toleransi pembulatan
+    const isCompleted = newAccumulatedAmount >= (totalInstAmount - 1.0);
 
-    // Update status cicilan
     await supabase
       .from('installment')
       .update({
@@ -530,13 +480,11 @@ async function processQrisPayment(merchantId, amount) {
       })
       .eq('id', inst.id);
 
-    // Jika lunas, seluruh target gram emas diberikan ke saldo emas merchant
     if (isCompleted) {
       additionalGoldReward = parseFloat(inst.target_weight);
     }
   }
 
-  // 5. Update Saldo Merchant & Saldo Emas
   const { data: currentBal } = await supabase
     .from('balance')
     .select('*')
@@ -554,7 +502,6 @@ async function processQrisPayment(merchantId, amount) {
     })
     .eq('merchant_id', merchantId);
 
-  // 6. Buat Record Transaksi QRIS_IN
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   const yearSuffix = new Date().getFullYear().toString().slice(-2);
   const txId = `QRIS${yearSuffix}${randomNum}QG`;
@@ -579,7 +526,6 @@ async function processQrisPayment(merchantId, amount) {
   return txRecord;
 }
 
-// Simulate Incoming QRIS Payment
 app.post('/api/transactions/simulate-qris', validateSimulateQris, async (req, res) => {
   const { merchantId, amount } = req.body;
   try {
@@ -594,9 +540,6 @@ app.post('/api/transactions/simulate-qris', validateSimulateQris, async (req, re
   }
 });
 
-// -------------------------------------------------------------
-// GET: Ambil Harga Emas Terbaru (Untuk dipakai Frontend)
-// -------------------------------------------------------------
 app.get('/api/gold-price/current', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -613,9 +556,6 @@ app.get('/api/gold-price/current', async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
-// POST: Tambah Harga Emas Baru (Opsi 2 - Admin)
-// -------------------------------------------------------------
 app.post('/api/gold-price', authenticateMerchant, async (req, res) => {
   const { price, buyback_price } = req.body;
 
@@ -645,9 +585,6 @@ app.post('/api/gold-price', authenticateMerchant, async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
-// AUTH & KYC ENDPOINTS
-// -------------------------------------------------------------
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, ownerName, shopName } = req.body;
   if (!username || !password || !ownerName || !shopName) {
@@ -682,7 +619,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     if (error) return res.status(500).json({ success: false, message: error.message });
 
-    // Insert Initial Balance
+    // Buat saldo awal merchant
     await supabase.from('balance').insert([{
       merchant_id: data.id,
       main_balance: 0.0,
@@ -767,9 +704,6 @@ app.put('/api/merchants/verify', async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
-// UPDATE BANK ACCOUNT
-// -------------------------------------------------------------
 app.put('/api/merchants/bank-account', async (req, res) => {
   const { merchantId, bankName, bankAccountNumber, bankAccountName } = req.body;
   if (!merchantId || !bankName || !bankAccountNumber || !bankAccountName) {
@@ -800,11 +734,7 @@ app.put('/api/merchants/bank-account', async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
-// MIDTRANS QRIS ENDPOINTS
-// -------------------------------------------------------------
-
-// POST: Buat transaksi QRIS baru via Midtrans Sandbox
+// Buat transaksi QRIS baru via Midtrans Sandbox
 app.post('/api/qris/create', async (req, res) => {
   const { merchantId, amount, shopName } = req.body;
 
@@ -820,7 +750,6 @@ app.post('/api/qris/create', async (req, res) => {
     });
   }
 
-  // Buat order ID unik: QRIS-merchantId-timestamp
   const orderId = `QRIS-${merchantId}-${Date.now()}`;
 
   try {
@@ -848,11 +777,9 @@ app.post('/api/qris/create', async (req, res) => {
 
     const data = response.data;
 
-    // Ambil URL gambar QR dari actions Midtrans
     const qrAction = data.actions?.find(a => a.name === 'generate-qr-code');
     const qrImageUrl = qrAction ? qrAction.url : null;
 
-    // Simpan mapping orderId -> merchantId untuk status check
     qrisOrderMap[orderId] = { merchantId, amount };
 
     console.log(`[QRIS BARU DIBUAT]`);
@@ -877,7 +804,7 @@ app.post('/api/qris/create', async (req, res) => {
   }
 });
 
-// GET: Cek status pembayaran QRIS by orderId
+// Cek status pembayaran QRIS by orderId
 app.get('/api/qris/status/:orderId', async (req, res) => {
   const { orderId } = req.params;
 
@@ -904,17 +831,14 @@ app.get('/api/qris/status/:orderId', async (req, res) => {
 
     console.log(`[QRIS] Status check for ${orderId}: ${status}`);
 
-    // Kalau sudah settlement atau capture = pembayaran berhasil
     if (status === 'settlement' || status === 'capture') {
       const orderInfo = qrisOrderMap[orderId];
 
       if (orderInfo && !orderInfo.processed) {
-        // Tandai sudah diproses agar tidak double-update saldo
         qrisOrderMap[orderId].processed = true;
 
         const { merchantId, amount } = orderInfo;
 
-        // Update saldo merchant dengan auto-cap cicilan
         try {
           const txData = await processQrisPayment(merchantId, amount);
 
@@ -929,20 +853,17 @@ app.get('/api/qris/status/:orderId', async (req, res) => {
         }
 
       } else {
-        // Sudah diproses sebelumnya
         return res.json({ status: 'paid', transaction: null, midtransStatus: status });
       }
 
     } else if (status === 'expire') {
       return res.json({ status: 'expired', midtransStatus: status });
     } else {
-      // pending, dll
       return res.json({ status: 'pending', midtransStatus: status });
     }
 
   } catch (err) {
     console.error('[QRIS Status Error]', err.response?.data || err.message);
-    // Kalau 404 dari Midtrans (transaksi tidak ditemukan) = pending
     if (err.response?.status === 404) {
       return res.json({ status: 'pending', midtransStatus: 'not_found' });
     }
@@ -950,7 +871,6 @@ app.get('/api/qris/status/:orderId', async (req, res) => {
   }
 });
 
-// Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server PKL Finance is running on http://0.0.0.0:${PORT}`);
 });
