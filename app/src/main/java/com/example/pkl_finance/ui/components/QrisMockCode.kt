@@ -111,7 +111,6 @@ fun QrisMockCode(
                         val gridCount = 29 // 29x29 detailed modules grid
                         val cellSize = width / gridCount
 
-                        // Helper to draw black square blocks
                         fun drawBlock(col: Int, row: Int) {
                             drawRect(
                                 color = Color.Black,

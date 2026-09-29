@@ -213,7 +213,6 @@ fun QrisNewLayout(
                 }
             )
 
-            // 2. Scrollable Body Content
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -315,7 +314,6 @@ fun QrisNewLayout(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // ─── QR Area Midtrans ────────────────────────────────
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -326,7 +324,6 @@ fun QrisNewLayout(
                             contentAlignment = Alignment.Center
                         ) {
                             when {
-                                // 1. Sedang loading / buat QR
                                 isCreatingQr -> {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -345,7 +342,6 @@ fun QrisNewLayout(
                                     }
                                 }
 
-                                // 2. Error dari Midtrans
                                 qrErrorMsg.isNotEmpty() -> {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -369,7 +365,6 @@ fun QrisNewLayout(
                                     }
                                 }
 
-                                // 3. QR berhasil dibuat dari Midtrans
                                 midtransQrImageUrl.isNotEmpty() -> {
                                     Box(
                                         modifier = Modifier.fillMaxSize(),
@@ -464,13 +459,11 @@ fun QrisNewLayout(
                                     }
                                 }
 
-                                // 4. Fallback jika belum ada apapun
                                 else -> {
                                     CircularProgressIndicator(color = Blue500, modifier = Modifier.size(40.dp))
                                 }
                             }
                         }
-                        // ─── Akhir QR Area ───────────────────────────────────
 
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -572,7 +565,6 @@ fun QrisNewLayout(
                 .background(BackgroundLight)
                 .statusBarsPadding()
         ) {
-            // 1. Top Custom App Bar for Static Default (X + Title + Download) - Centered Title
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

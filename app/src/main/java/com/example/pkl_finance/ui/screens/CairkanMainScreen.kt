@@ -64,7 +64,6 @@ fun CairkanMainScreen(
                 .weight(1f)
                 .padding(20.dp)
         ) {
-            // Section 1: Saldo Merchant
             Text(
                 text = "Saldo merchant",
                 fontSize = 15.sp,
@@ -117,7 +116,6 @@ fun CairkanMainScreen(
                         )
                     }
 
-                    // Radio Check
                     Box(
                         modifier = Modifier
                             .size(22.dp)
@@ -156,7 +154,6 @@ fun CairkanMainScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 2: Akun Pencairan
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -215,7 +212,6 @@ fun CairkanMainScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Dynamic logo square
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
@@ -268,7 +264,6 @@ fun CairkanMainScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Section 3: Metode Pencairan
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

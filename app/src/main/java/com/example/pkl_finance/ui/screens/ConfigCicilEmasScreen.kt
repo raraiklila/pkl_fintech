@@ -93,7 +93,6 @@ fun ConfigCicilEmasScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Step 1: Pilih Berat Emas
                 StepHeader(number = 1, title = "Pilih Berat Emas")
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -101,7 +100,6 @@ fun ConfigCicilEmasScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Option 0.5g
                     WeightOptionCard(
                         weightText = "0.5g",
                         stockText = "Sisa: 3",
@@ -110,7 +108,6 @@ fun ConfigCicilEmasScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    // Option 1.0g
                     WeightOptionCard(
                         weightText = "1g",
                         stockText = "Sisa: 2",
@@ -122,7 +119,6 @@ fun ConfigCicilEmasScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Step 2: Pilih Target Tabungan
                 StepHeader(number = 2, title = "Pilih Target Tabungan dari Tiap Transaksi")
                 Spacer(modifier = Modifier.height(12.dp))
 

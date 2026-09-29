@@ -1087,7 +1087,6 @@ fun FaqView(
                     val w = size.width
                     val h = size.height
 
-                    // 1. Draw Legs
                     drawRoundRect(
                         color = Color(0xFF7C3AED),
                         topLeft = Offset(w * 0.35f, h * 0.8f),
@@ -1113,7 +1112,6 @@ fun FaqView(
                         size = Size(w * 0.13f, h * 0.07f)
                     )
 
-                    // 2. Draw Ears
                     // Left Ear
                     val leftEarPath = Path().apply {
                         moveTo(w * 0.25f, h * 0.35f)
@@ -1146,7 +1144,6 @@ fun FaqView(
                     }
                     drawPath(path = rightEarInnerPath, color = Color(0xFF7C3AED))
 
-                    // 3. Draw Body/Face (Yellow Oval)
                     drawOval(
                         color = Color(0xFFFBBF24),
                         topLeft = Offset(w * 0.2f, h * 0.25f),
@@ -1160,7 +1157,6 @@ fun FaqView(
                         size = Size(w * 0.4f, h * 0.33f)
                     )
 
-                    // 4. Arms
                     // Left Arm
                     drawOval(
                         color = Color(0xFFF87171),
@@ -1184,7 +1180,6 @@ fun FaqView(
                         size = Size(w * 0.08f, h * 0.08f)
                     )
 
-                    // 5. Glasses & Eyes
                     drawCircle(
                         color = Color(0xFF7C3AED),
                         radius = w * 0.11f,
@@ -1227,7 +1222,6 @@ fun FaqView(
                         center = Offset(w * 0.60f, h * 0.43f)
                     )
 
-                    // 6. Pink Cheeks
                     drawCircle(
                         color = Color(0xFFF472B6).copy(alpha = 0.8f),
                         radius = w * 0.04f,
@@ -1239,7 +1233,6 @@ fun FaqView(
                         center = Offset(w * 0.72f, h * 0.56f)
                     )
 
-                    // 7. Mouth (Smiley)
                     val mouthPath = Path().apply {
                         moveTo(w * 0.46f, h * 0.53f)
                         quadraticTo(w * 0.50f, h * 0.59f, w * 0.54f, h * 0.53f)

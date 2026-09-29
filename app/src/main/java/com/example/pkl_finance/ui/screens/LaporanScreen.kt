@@ -144,7 +144,6 @@ fun LaporanScreen(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            // 1. Period Selector Filters (Styled exactly like Transaction History page filters, transparent container)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -206,7 +205,6 @@ fun LaporanScreen(
             ) {
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // 2. Card Pertama: 1 Card Pendapatan Bersih
                 Card(
                     colors = CardDefaults.cardColors(containerColor = AppWhite),
                     shape = RoundedCornerShape(24.dp),

@@ -105,7 +105,6 @@ fun QrisDownloadTemplate(
                     .background(Color.White, RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
             ) {
-                // 1. Watermark Concentric Squares Graphics (Left and Bottom Border)
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val width = size.width
                     val height = size.height
@@ -141,7 +140,6 @@ fun QrisDownloadTemplate(
                     }
                 }
 
-                // 2. Red Decal Path overlays around QR
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val width = size.width
                     val height = size.height
@@ -165,7 +163,6 @@ fun QrisDownloadTemplate(
                     drawPath(path = rightPath, color = Color(0xFFE11D48))
                 }
 
-                // 3. Branded Header row: [QRIS] standard + GPN Wings logo
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -241,7 +238,6 @@ fun QrisDownloadTemplate(
                     }
                 }
 
-                // 4. Content Area (Merchant Shop name, NMID, Terminal)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -340,7 +336,6 @@ fun QrisDownloadTemplate(
                     }
                 }
 
-                // 5. Instruction Bottom Banner Area (Cara Pembayaran QRIS)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
