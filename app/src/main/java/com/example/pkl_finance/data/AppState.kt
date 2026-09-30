@@ -62,11 +62,10 @@ data class Transaction(
 )
 
 class AppState {
-    // Auth State
     var isLoggedIn by mutableStateOf(false)
     var authToken by mutableStateOf<String?>(null)
 
-    // Current Login Info (Overrides default mock)
+    // Current Login Info 
     var merchantInfo by mutableStateOf<MerchantResponse?>(null)
 
     // Current Active Merchant ID
@@ -125,10 +124,8 @@ class AppState {
     var showCompletionDialog by mutableStateOf(false)
     var completedInstallmentWeight by mutableStateOf(0.5)
 
-    // Capture background refresh errors to surface to UI
     var refreshError by mutableStateOf<String?>(null)
 
-    // Helper to format ISO timestamp from Supabase into indonesian readable date
     private fun formatIsoToReadable(isoString: String?): String {
         if (isoString.isNullOrEmpty()) return ""
         return try {
@@ -287,7 +284,6 @@ class AppState {
                     isVerified = merchant.isVerified
                     isUMI = merchant.isUmi
 
-                    // Load bank account data from DB
                     merchant.bankName?.takeIf { it.isNotEmpty() }?.let { disbursementBankName = it }
                     merchant.bankAccountNumber?.takeIf { it.isNotEmpty() }?.let { disbursementAccountNumber = it }
                     merchant.bankAccountName?.takeIf { it.isNotEmpty() }?.let { disbursementAccountName = it }
@@ -407,7 +403,6 @@ class AppState {
                 refreshData()
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    // Remove offline fallback
                 }
             }
         }
@@ -437,7 +432,6 @@ class AppState {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    // Remove offline fallback
                 }
             }
         }
@@ -581,7 +575,6 @@ class AppState {
                 withContext(Dispatchers.Main) {
                     onError?.invoke(e.localizedMessage ?: e.message ?: "Unknown network error")
                 }
-                // Return local fallback on failure
                 val txId = generateTransactionId("QRIS_IN")
                 val dateStr = java.text.SimpleDateFormat("dd MMM yyyy HH:mm", Locale("id", "ID")).format(java.util.Date()) + " WIB"
                 val fallbackTx = Transaction(
@@ -603,7 +596,7 @@ class AppState {
         }
     }
 
-    // ─── Midtrans QRIS: Buat QR baru ──────────────────────────────
+    // Buat QR baru 
     fun createMidtransQris(
         amount: Double,
         onReady: (orderId: String, qrImageUrl: String) -> Unit,
@@ -636,9 +629,7 @@ class AppState {
         }
     }
 
-    // ─── Midtrans QRIS: Polling status pembayaran ──────────────────
-    // Dipanggil dari coroutine di UI. Polling tiap 3 detik, max 5 menit.
-    // Return true jika paid, false jika expired/timeout.
+    // Polling status pembayaran 
     suspend fun pollQrisStatus(
         orderId: String,
         onPaid: (Transaction?) -> Unit,
@@ -686,11 +677,9 @@ class AppState {
                         withContext(Dispatchers.Main) { onExpired() }
                         return
                     }
-                    // "pending" → lanjut polling
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Network error = lanjut coba lagi
             }
         }
 

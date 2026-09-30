@@ -31,10 +31,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.pkl_finance.ui.theme.*
 
-/**
- * Material 3 Expressive Danger Logout Dialog
- * Features a red-themed alert layout, logout icon, spring pop-in scale, and M3 Danger buttons.
- */
+
 @Composable
 fun LogoutDialog(
     onConfirm: () -> Unit,
@@ -72,7 +69,6 @@ fun LogoutDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Red Glowing Icon Badge
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -115,7 +111,6 @@ fun LogoutDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // "Batal" – Secondary outline
                         AppButton(
                             text = "Batal",
                             onClick = onDismiss,
@@ -123,7 +118,6 @@ fun LogoutDialog(
                             modifier = Modifier.weight(1f)
                         )
 
-                        // "Keluar" – Red Danger button
                         AppButton(
                             text = "Keluar",
                             onClick = onConfirm,

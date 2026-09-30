@@ -87,7 +87,7 @@ data class UpdateBankAccountRequest(
     @SerializedName("bankAccountName") val bankAccountName: String
 )
 
-// ─── Midtrans QRIS ─────────────────────────────────────────────
+// Midtrans QRIS 
 data class CreateQrisRequest(
     @SerializedName("merchantId") val merchantId: Int,
     @SerializedName("amount") val amount: Double,

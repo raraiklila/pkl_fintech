@@ -50,7 +50,6 @@ fun CustomBottomNavigation(
             .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             .background(Color.Transparent)
     ) {
-        // Floating Capsule container
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,7 +66,7 @@ fun CustomBottomNavigation(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tab 1: Beranda (Home)
+            // Beranda
             CapsuleNavItem(
                 label = "Beranda",
                 isSelected = appState.currentScreen == Screen.Home,
@@ -83,7 +82,7 @@ fun CustomBottomNavigation(
                 )
             }
 
-            // Tab 2: Transaksi
+            // Transaksi
             CapsuleNavItem(
                 label = "Transaksi",
                 isSelected = appState.currentScreen == Screen.Transaksi,
@@ -99,7 +98,7 @@ fun CustomBottomNavigation(
                 )
             }
 
-            // Tab 3: QRIS dummy slot with NO label
+            // QRIS
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -118,10 +117,10 @@ fun CustomBottomNavigation(
                 verticalArrangement = Arrangement.Bottom,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(68.dp)) // empty slot placeholder to balance navbar height
+                Spacer(modifier = Modifier.height(68.dp)) 
             }
 
-            // Tab 4: Emas
+            // Emas
             CapsuleNavItem(
                 label = "Emas",
                 isSelected = appState.currentScreen == Screen.Emas,
@@ -137,7 +136,7 @@ fun CustomBottomNavigation(
                 )
             }
 
-            // Tab 5: Profil
+            // Profil
             CapsuleNavItem(
                 label = "Profil",
                 isSelected = appState.currentScreen == Screen.Profile,
@@ -154,7 +153,6 @@ fun CustomBottomNavigation(
             }
         }
 
-            // Protruding Center QRIS Circular FAB
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -172,7 +170,6 @@ fun CustomBottomNavigation(
                 },
             contentAlignment = Alignment.Center
         ) {
-            // QR Code icon inside the blue circle
             Column(
                 modifier = Modifier.size(22.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
@@ -236,7 +233,6 @@ fun RowScope.CapsuleNavItem(
         label = "navItemScale"
     )
 
-    // Keep weight constant at 1f so there are no layout width changes or shifting
     Column(
         modifier = Modifier
             .weight(1f)
@@ -249,7 +245,6 @@ fun RowScope.CapsuleNavItem(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Draw a subtle rounded pill background around icon & label only if selected
         Box(
             modifier = Modifier
                 .wrapContentSize()

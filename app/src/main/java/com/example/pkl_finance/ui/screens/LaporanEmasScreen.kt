@@ -124,12 +124,15 @@ fun LaporanEmasScreen(appState: AppState) {
             // Header
             item { LaporanHeader(onClose = { appState.navigateTo(Screen.Emas) }) }
 
+            // 1. Portfolio Summary
             item { PortfolioSummaryCard(appState = appState) }
 
+            // 2. Period Filter
             item {
                 PeriodFilterRow(selected = selectedPeriod, onSelect = { selectedPeriod = it })
             }
 
+            // 3. Interactive Chart
             item {
                 InteractiveChartCard(points = chartPoints, onPointTap = { pt ->
                     selectedPoint = pt
@@ -137,14 +140,27 @@ fun LaporanEmasScreen(appState: AppState) {
                 })
             }
 
+            // 5. Statistics
             item { StatisticsCard(appState = appState) }
 
+            // 6. Timeline title + items
+            // item { SectionTitle("Timeline Aktivitas") }
+            // items(activities.size) { i ->
+            //    ActivityTimelineItem(
+            //        entry = activities[i],
+            //        isLast = i == activities.lastIndex
+            //    )
+            // }
+
+            // 7. Activity summary
             item { ActivitySummaryCard(appState = appState) }
 
+            // 8. Insight
             item { InsightComingSoonCard() }
         }
     }
 
+    // 4. Bottom Sheet
     if (showBottomSheet && selectedPoint != null) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },

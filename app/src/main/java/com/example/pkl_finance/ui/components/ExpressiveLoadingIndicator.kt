@@ -22,10 +22,6 @@ import com.example.pkl_finance.ui.theme.GoldAccent
 import com.example.pkl_finance.ui.theme.PrimaryBlue
 import kotlin.math.sin
 
-/**
- * Material 3 Expressive Shape Morphing Loading Indicator
- * Custom Canvas-rendered morphing indicator with fluid spring shapes & rotating track.
- */
 @Composable
 fun ExpressiveLoadingIndicator(
     modifier: Modifier = Modifier,
@@ -39,10 +35,6 @@ fun ExpressiveLoadingIndicator(
     )
 }
 
-/**
- * Custom Material 3 Expressive Wavy Circular Progress Indicator
- * As seen in M3 Expressive design specs (Circular progress with wavy dynamic track/stroke)
- */
 @Composable
 fun ExpressiveWavyCircularProgressIndicator(
     modifier: Modifier = Modifier,
@@ -83,7 +75,6 @@ fun ExpressiveWavyCircularProgressIndicator(
         val center = Offset(size.toPx() / 2f, size.toPx() / 2f)
         val baseRadius = (size.toPx() - strokeWidth.toPx() * 2) / 2f
 
-        // Draw track circle
         drawCircle(
             color = trackColor,
             radius = baseRadius,
@@ -91,7 +82,6 @@ fun ExpressiveWavyCircularProgressIndicator(
             style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
         )
 
-        // Draw Wavy Progress Arc
         val wavyPath = Path()
         val steps = 120
         val arcDegrees = 270f
@@ -121,10 +111,6 @@ fun ExpressiveWavyCircularProgressIndicator(
     }
 }
 
-/**
- * Material 3 Expressive Wavy Linear Progress Indicator
- * Renders an animated sine wave active progress line (as seen in M3 Expressive design)
- */
 @Composable
 fun ExpressiveWavyLinearProgressIndicator(
     modifier: Modifier = Modifier,
@@ -164,7 +150,6 @@ fun ExpressiveWavyLinearProgressIndicator(
         val height = size.height
         val centerY = height / 2f
 
-        // Draw track
         drawLine(
             color = trackColor,
             start = Offset(0f, centerY),
@@ -173,7 +158,6 @@ fun ExpressiveWavyLinearProgressIndicator(
             cap = StrokeCap.Round
         )
 
-        // Draw animated Wavy line
         val wavePath = Path()
         val activeWidth = width * 0.45f
         val startX = (width - activeWidth) * progressX
@@ -196,9 +180,6 @@ fun ExpressiveWavyLinearProgressIndicator(
     }
 }
 
-/**
- * Fallback Expressive Morphing Loader with pulsing scaling shapes
- */
 @Composable
 private fun FallbackExpressiveMorphingLoader(
     modifier: Modifier = Modifier,
@@ -255,9 +236,6 @@ private fun FallbackExpressiveMorphingLoader(
     }
 }
 
-/**
- * Material 3 Expressive Bouncy Dots Loader
- */
 @Composable
 fun ExpressiveBouncyDotsLoader(
     modifier: Modifier = Modifier,

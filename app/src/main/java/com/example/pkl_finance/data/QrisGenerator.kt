@@ -8,9 +8,6 @@ import java.util.Locale
 
 object QrisGenerator {
 
-    /**
-     * Calculates mathematical CRC-16 CCITT (0x1021 polynomial, 0xFFFF initial value)
-     */
     private fun calculateCrc16(data: String): String {
         var crc = 0xFFFF
         val polynomial = 0x1021
@@ -26,9 +23,6 @@ object QrisGenerator {
         return String.format(Locale.US, "%04X", crc)
     }
 
-    /**
-     * Formats dynamic/static EMVCo QRIS compliant payload string
-     */
     fun getQrisPayload(merchantName: String, amount: Double?): String {
         val cleanName = merchantName.take(25).uppercase().replace("[^A-Z0-9 ]".toRegex(), "")
         val formattedName = cleanName.ifEmpty { "MERCHANT" }
@@ -66,10 +60,10 @@ object QrisGenerator {
         builder.append(String.format(Locale.US, "%02d", formattedName.length))
         builder.append(formattedName)
 
-        builder.append("6006SRAGEN") // Merchant City
-        builder.append("62070703A01") // Data Field (Invoice / Ref info)
+        builder.append("6006SRAGEN") 
+        builder.append("62070703A01") 
 
-        builder.append("6304") // CRC tag placeholder
+        builder.append("6304")
 
         val baseString = builder.toString()
         val crcValue = calculateCrc16(baseString)
@@ -77,9 +71,6 @@ object QrisGenerator {
         return "$baseString$crcValue"
     }
 
-    /**
-     * Generates a square QR Code bitmap from the payload content
-     */
     fun generateQrCodeBitmap(content: String, size: Int): Bitmap {
         val bitMatrix = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
         val width = bitMatrix.width

@@ -34,7 +34,6 @@ fun CustomProgressBar(
         val height = size.height
         val centerY = height / 2f
         
-        // Inner dimensions of the actual line
         val lineThickness = 6.dp.toPx()
         val radius = height / 2f
         val startX = radius

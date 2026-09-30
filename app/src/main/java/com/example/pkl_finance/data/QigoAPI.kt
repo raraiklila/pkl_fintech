@@ -101,7 +101,6 @@ interface PklFinanceApi {
         @Query("limit") limit: Int = 6
     ): GoldPriceHistoryResponse
 
-    // ─── Midtrans QRIS ─────────────────────────────────────────────
     // Buat transaksi QRIS baru via Midtrans Sandbox
     @POST("api/qris/create")
     suspend fun createQrisPayment(
@@ -135,7 +134,6 @@ data class GoldPriceHistoryResponse(
     val history: List<GoldPricePoint>
 )
 
-// Auth Data Classes
 data class RegisterRequest(
     val username: String,
     val password: String,
@@ -154,7 +152,6 @@ data class VerifyRequest(
     val fullName: String,
     val nik: String,
     val shopAddress: String
-    // In a real app, photos would be sent via MultipartFormData
 )
 
 data class AuthResponse(

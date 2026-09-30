@@ -1074,7 +1074,6 @@ fun FaqView(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Custom Vector Cat Mascot Illustration
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1100,7 +1099,6 @@ fun FaqView(
                         cornerRadius = CornerRadius(10f, 10f)
                     )
 
-                    // Shoes
                     drawOval(
                         color = Color(0xFF6D28D9),
                         topLeft = Offset(w * 0.31f, h * 0.87f),
@@ -1112,7 +1110,6 @@ fun FaqView(
                         size = Size(w * 0.13f, h * 0.07f)
                     )
 
-                    // Left Ear
                     val leftEarPath = Path().apply {
                         moveTo(w * 0.25f, h * 0.35f)
                         lineTo(w * 0.20f, h * 0.15f)
@@ -1128,7 +1125,6 @@ fun FaqView(
                     }
                     drawPath(path = leftEarInnerPath, color = Color(0xFF7C3AED))
 
-                    // Right Ear
                     val rightEarPath = Path().apply {
                         moveTo(w * 0.75f, h * 0.35f)
                         lineTo(w * 0.80f, h * 0.15f)
@@ -1150,14 +1146,12 @@ fun FaqView(
                         size = Size(w * 0.6f, h * 0.58f)
                     )
 
-                    // White face patch
                     drawOval(
                         color = Color.White,
                         topLeft = Offset(w * 0.3f, h * 0.45f),
                         size = Size(w * 0.4f, h * 0.33f)
                     )
 
-                    // Left Arm
                     drawOval(
                         color = Color(0xFFF87171),
                         topLeft = Offset(w * 0.1f, h * 0.45f),
@@ -1168,7 +1162,6 @@ fun FaqView(
                         topLeft = Offset(w * 0.08f, h * 0.48f),
                         size = Size(w * 0.08f, h * 0.08f)
                     )
-                    // Right Arm
                     drawOval(
                         color = Color(0xFFF87171),
                         topLeft = Offset(w * 0.77f, h * 0.45f),

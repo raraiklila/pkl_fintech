@@ -49,7 +49,6 @@ fun QrisMockCode(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Centered QRIS Branding Logo on top
             Icon(
                 painter = painterResource(id = R.drawable.ic_qris_logo_branding),
                 contentDescription = "QRIS Logo",
@@ -61,7 +60,6 @@ fun QrisMockCode(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // White box containing QR Code + red corners template background
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,12 +69,10 @@ fun QrisMockCode(
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Background Canvas for red corner templates
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val w = size.width
                     val h = size.height
 
-                    // Left red decal (slanted bar on left edge)
                     val leftPath = Path().apply {
                         moveTo(0f, h * 0.12f)
                         lineTo(w * 0.05f, h * 0.12f)
@@ -86,7 +82,6 @@ fun QrisMockCode(
                     }
                     drawPath(path = leftPath, color = Color(0xFFEF4444))
 
-                    // Bottom-right red decal (L-shaped corner border)
                     val rightPath = Path().apply {
                         moveTo(w * 0.55f, h)
                         lineTo(w * 0.62f, h * 0.94f)
@@ -99,7 +94,6 @@ fun QrisMockCode(
                     drawPath(path = rightPath, color = Color(0xFFEF4444))
                 }
 
-                // QR modules drawing Canvas (with padding to prevent overlapping red decals)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -119,7 +113,6 @@ fun QrisMockCode(
                             )
                         }
 
-                        // Draw Finder Pattern (Top-Left, Top-Right, Bottom-Left)
                         fun drawFinderPattern(startCol: Int, startRow: Int) {
                             for (i in 0 until 7) {
                                 for (j in 0 until 7) {

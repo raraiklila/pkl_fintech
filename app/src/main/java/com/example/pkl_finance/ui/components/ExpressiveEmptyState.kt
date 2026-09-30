@@ -22,10 +22,6 @@ import com.example.pkl_finance.ui.theme.PrimaryBlue
 import com.example.pkl_finance.ui.theme.PrimaryBlueLight
 import com.example.pkl_finance.ui.theme.SlateGray
 
-/**
- * Material 3 Expressive Empty State View
- * Displays a glowing expressive badge with an icon, bold title, and subtext.
- */
 @Composable
 fun ExpressiveEmptyState(
     title: String = "Belum Ada Transaksi",
@@ -40,7 +36,6 @@ fun ExpressiveEmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Expressive Badge Halo
         Box(
             modifier = Modifier
                 .size(76.dp)

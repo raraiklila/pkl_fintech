@@ -39,7 +39,6 @@ fun PlaceholderScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Decorative background glowing shape
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -68,7 +67,6 @@ fun PlaceholderScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Title
         Text(
             text = title,
             fontSize = 20.sp,
@@ -79,7 +77,6 @@ fun PlaceholderScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Description
         Text(
             text = description,
             fontSize = 14.sp,
@@ -92,7 +89,6 @@ fun PlaceholderScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Premium mockup block to represent visual progress
         Box(
             modifier = Modifier
                 .fillMaxWidth()

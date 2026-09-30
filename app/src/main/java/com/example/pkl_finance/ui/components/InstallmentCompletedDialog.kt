@@ -125,10 +125,8 @@ fun InstallmentCompletedDialog(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Confetti animation layer
             ConfettiCanvas(modifier = Modifier.fillMaxSize())
 
-            // Main Dialog Card (Matching Design System exactly)
             Card(
                 colors = CardDefaults.cardColors(containerColor = AppWhite),
                 shape = RoundedCornerShape(32.dp),
@@ -142,7 +140,6 @@ fun InstallmentCompletedDialog(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Top Icon Badge
                     Box(
                         modifier = Modifier
                             .size(56.dp)
@@ -154,7 +151,6 @@ fun InstallmentCompletedDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Title
                     Text(
                         text = "Cicilan Emas Lunas!",
                         fontSize = 18.sp,
@@ -165,7 +161,6 @@ fun InstallmentCompletedDialog(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // Subtitle
                     Text(
                         text = "Target tabungan emas Anda sudah tercapai 100%",
                         fontSize = 12.sp,
@@ -178,7 +173,6 @@ fun InstallmentCompletedDialog(
                     HorizontalDivider(color = Color(0xFFE2E8F0), thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Detail items
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -211,7 +205,6 @@ fun InstallmentCompletedDialog(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Yellow Info Card
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
                         border = BorderStroke(1.dp, Color(0xFFFDE68A)),
@@ -230,7 +223,6 @@ fun InstallmentCompletedDialog(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Action buttons (1 single row with concise button text)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)

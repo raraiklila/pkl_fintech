@@ -50,7 +50,6 @@ fun QrisDownloadTemplate(
             .fillMaxSize()
             .background(Color(0xFFE2E8F0)) // slate blue gray overlay bg
         ) {
-        // Toolbar header
         TopAppBar(
             title = {
                 Text(
@@ -87,7 +86,6 @@ fun QrisDownloadTemplate(
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
-        // Scrollable Print Sheet viewport
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -96,7 +94,6 @@ fun QrisDownloadTemplate(
                 .verticalScroll(rememberScrollState()),
             contentAlignment = Alignment.Center
         ) {
-            // Printable A4/Stand Card ratio container
             Box(
                 modifier = Modifier
                     .width(360.dp)
@@ -109,7 +106,6 @@ fun QrisDownloadTemplate(
                     val width = size.width
                     val height = size.height
 
-                    // concentric tiles drawer
                     fun DrawScope.drawWatermarkTile(x: Float, y: Float, size: Float) {
                         val steps = 3
                         for (i in 0 until steps) {
@@ -124,7 +120,6 @@ fun QrisDownloadTemplate(
                         }
                     }
 
-                    // Left margins watermark vertical strip
                     val tileSize = 54.dp.toPx()
                     var yPos = 0f
                     while (yPos < height) {
@@ -132,7 +127,6 @@ fun QrisDownloadTemplate(
                         yPos += tileSize
                     }
 
-                    // Bottom margins watermark horizontal strip
                     var xPos = 0f
                     while (xPos < width) {
                         drawWatermarkTile(xPos, height - tileSize, tileSize)
@@ -144,7 +138,6 @@ fun QrisDownloadTemplate(
                     val width = size.width
                     val height = size.height
 
-                    // Left rose-red border chevron
                     val leftPath = Path().apply {
                         moveTo(0f, height * 0.22f)
                         lineTo(width * 0.15f, height * 0.35f)
@@ -153,7 +146,6 @@ fun QrisDownloadTemplate(
                     }
                     drawPath(path = leftPath, color = Color(0xFFE11D48))
 
-                    // Bottom-right corner rose-red angled polygon
                     val rightPath = Path().apply {
                         moveTo(width, height * 0.72f)
                         lineTo(width * 0.65f, height)
@@ -170,7 +162,6 @@ fun QrisDownloadTemplate(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // QRIS Text and brackets logo
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "⌈",
@@ -212,7 +203,6 @@ fun QrisDownloadTemplate(
                         }
                     }
 
-                    // GPN Logo (Red bird wing + GPN text)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.width(42.dp)
@@ -363,7 +353,6 @@ fun QrisDownloadTemplate(
                         )
                     }
 
-                    // Overlay Instructions Row
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -389,7 +378,6 @@ fun QrisDownloadTemplate(
                     }
                 }
 
-                // ASPI QRIS validation sub-labels
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
