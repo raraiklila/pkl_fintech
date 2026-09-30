@@ -18,6 +18,12 @@ local.properties
 .kotlin/
 .postman/
 
+# Environment variables (jangan pernah di-push ke GitHub!)
+.env
+backend/.env
+fintech-admin/.env
+*.env
+
 # Temporary extraction & PDF documents
 *.pdf
 extracted_laporan_pkl.txt
